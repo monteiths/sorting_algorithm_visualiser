@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorting Algorithm Visualiser</title>
+<style>
+:root{--ink:#172033;--muted:#64748b;--paper:#f7f8fb;--panel:#fff;--accent:#635bff;--warn:#f59e0b;--good:#16a34a;--pivot:#db2777;--border:#dfe3eb}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--paper);color:var(--ink)}
+body{overflow-x:hidden}header,main{max-width:1180px;margin:auto}header{padding:16px 14px 10px}main{padding:0 14px 16px}
+h1{margin:0 0 5px;font-size:clamp(1.5rem,3vw,2.25rem);letter-spacing:-.04em}.subtitle{color:var(--muted);line-height:1.4}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;padding:15px;margin-bottom:11px;box-shadow:0 8px 24px rgba(23,32,51,.08)}
+.controls{display:flex;gap:9px;flex-wrap:wrap;align-items:end}label{font-size:.78rem;font-weight:750;color:var(--muted);display:grid;gap:4px}
+select,input,button{font:inherit;border:1px solid var(--border);border-radius:9px;padding:9px 11px;background:white;color:var(--ink)}input{width:200px}
+button{cursor:pointer;font-weight:750}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button:disabled{opacity:.4}
+.visual{min-height:205px;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;padding:22px 8px 30px}
+.card{width:92px;height:120px;border:3px solid var(--accent);border-radius:15px;display:grid;place-items:center;font-size:2.3rem;font-weight:850;background:#f0efff;position:relative;transition:.28s}
+.card.compare{transform:translateY(-11px);background:#fff4d6;border-color:var(--warn)}.card.sorted{background:#e7f7ec;border-color:var(--good)}.card.pivot{background:#fce7f3;border-color:var(--pivot)}
+.tag{position:absolute;bottom:-25px;font-size:.65rem;color:var(--muted);font-weight:800}.explain{font-size:1rem;line-height:1.5;padding:12px 14px;background:#f8fafc;border-left:5px solid var(--accent);border-radius:9px;min-height:54px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}.stat{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:9px;text-align:center}.stat b{display:block;font-size:1.35rem}.stat span{font-size:.67rem;color:var(--muted);font-weight:800;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:11px}pre{white-space:pre-wrap;margin:0;font: .82rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.line{padding:2px 6px;border-radius:5px}.active{background:#fff1b8}
+.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin:5px 0 10px}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+@media(max-width:760px){header,main{padding-left:9px;padding-right:9px}.grid{grid-template-columns:1fr}.card{width:61px;height:86px;font-size:1.65rem}.stats{grid-template-columns:repeat(2,1fr)}.visual{gap:8px;min-height:165px}input{width:170px}}
+@media(min-width:1000px){.card{width:100px;height:128px;font-size:2.5rem}}
+</style></head>
+<body>
+<header><h1>Sorting Algorithm Visualiser</h1><div class="subtitle">Step through <strong>3, 5, 2, 3, 1</strong> using Bubble Sort, Selection Sort or Quick Sort. Watch the comparisons and swaps as they happen.</div></header>
+<main>
+<section class="panel"><div class="controls">
+<label>Algorithm<select id="algo"><option value="bubble">Bubble Sort</option><option value="selection">Selection Sort</option><option value="quick">Quick Sort</option></select></label>
+<label>Numbers<input id="numbers" value="3, 5, 2, 3, 1"></label><button id="apply">Use numbers</button><button id="random">Random set</button>
+<label>Speed<select id="speed"><option value="1100">Slow</option><option value="650" selected>Normal</option><option value="300">Fast</option></select></label>
+</div></section>
+<section class="panel">
+<div id="visual" class="visual"></div>
+<div class="legend"><span><i class="dot" style="background:#fff4d6"></i>Comparing/scanning</span><span><i class="dot" style="background:#e7f7ec"></i>Sorted</span><span><i class="dot" style="background:#fce7f3"></i>Pivot</span></div>
+<div id="explain" class="explain"></div>
+<div class="stats"><div class="stat"><b id="comparisons">0</b><span>Comparisons / scans</span></div><div class="stat"><b id="swaps">0</b><span>Swaps</span></div><div class="stat"><b id="step">0</b><span>Step</span></div><div class="stat"><b id="status">Ready</b><span>Status</span></div></div>
+<div class="controls" style="margin-top:11px"><button id="prev">← Previous</button><button id="next" class="primary">Next Step →</button><button id="play">▶ Play</button><button id="reset">Reset</button></div>
+</section>
+<section class="grid"><div class="panel"><h3 style="margin-top:0">What the algorithm is doing</h3><div id="concept"></div></div><div class="panel"><h3 style="margin-top:0">Pseudocode</h3><pre id="pseudo"></pre></div></section>
+</main>
+<script>
+const $=x=>document.getElementById(x);let states=[],pos=0,timer=null;
+const info={
+bubble:{concept:"<p><b>Bubble Sort</b> compares neighbouring cards and swaps them when the left value is larger. Each pass moves the largest remaining value to the end.</p>",pseudo:["repeat for each pass","  compare neighbouring values","  if left > right","    swap them","mark end value sorted"]},
+selection:{concept:"<p><b>Selection Sort</b> scans the unsorted cards for the smallest value, then moves it into the first unsorted position.</p>",pseudo:["for each unsorted position","  assume it is smallest","  scan remaining values","  remember smaller value","  swap smallest into place"]},
+quick:{concept:"<p><b>Quick Sort</b> chooses a pivot and partitions values around it. This version uses the <b>last value in each partition</b> as the pivot.</p>",pseudo:["choose a pivot","compare values with pivot","move values ≤ pivot left","put pivot in final position","quicksort left partition","quicksort right partition"]}};
+function snap(a,text,c,w,cmp=[],sorted=[],pivot=null,line=0,status="Sorting"){return{a:[...a],text,c,w,cmp:[...cmp],sorted:[...sorted],pivot,line,status}}
+function bubble(input){let a=[...input],s=[snap(input,"Start. Compare neighbouring cards.",0,0)],c=0,w=0,done=[];for(let end=a.length-1;end>0;end--){let changed=false;for(let i=0;i<end;i++){c++;s.push(snap(a,`Compare ${a[i]} and ${a[i+1]}.`,c,w,[i,i+1],done,null,1));if(a[i]>a[i+1]){let x=a[i],y=a[i+1];[a[i],a[i+1]]=[a[i+1],a[i]];w++;changed=true;s.push(snap(a,`${x} > ${y}, so swap them.`,c,w,[i,i+1],done,null,3))}else s.push(snap(a,`${a[i]} ≤ ${a[i+1]}, so no swap.`,c,w,[i,i+1],done,null,2))}done.push(end);if(!changed)break}done=[...Array(a.length).keys()];s.push(snap(a,"Finished: all cards are sorted.",c,w,[],done,null,0,"Done"));return s}
+function selection(input){let a=[...input],s=[snap(input,"Start. Find the smallest card in the unsorted section.",0,0)],c=0,w=0,done=[];for(let i=0;i<a.length-1;i++){let m=i;for(let j=i+1;j<a.length;j++){c++;s.push(snap(a,`Compare ${a[j]} with current smallest ${a[m]}.`,c,w,[m,j],done,null,2));if(a[j]<a[m])m=j}if(m!==i){let x=a[i],y=a[m];[a[i],a[m]]=[a[m],a[i]];w++;s.push(snap(a,`Swap ${y} with ${x}.`,c,w,[i,m],done,null,4))}done.push(i)}done.push(a.length-1);s.push(snap(a,"Finished: all cards are sorted.",c,w,[],done,null,0,"Done"));return s}
+function quick(input){let a=[...input],s=[snap(input,"Start. Choose pivots and partition the cards.",0,0)],c=0,w=0,done=new Set();function qs(lo,hi){if(lo>hi)return;if(lo===hi){done.add(lo);return}let pv=a[hi],i=lo;s.push(snap(a,`Choose ${pv} as the pivot.`,c,w,[],[...done],hi,0));for(let j=lo;j<hi;j++){c++;s.push(snap(a,`Compare ${a[j]} with pivot ${pv}.`,c,w,[j],[...done],hi,1));if(a[j]<=pv){if(i!==j){let x=a[i],y=a[j];[a[i],a[j]]=[a[j],a[i]];w++;s.push(snap(a,`${y} ≤ ${pv}: swap it left with ${x}.`,c,w,[i,j],[...done],hi,2))}i++}}if(i!==hi){let x=a[i];[a[i],a[hi]]=[a[hi],a[i]];w++;s.push(snap(a,`Move pivot ${pv} into its final position, swapping with ${x}.`,c,w,[i,hi],[...done],i,3))}done.add(i);qs(lo,i-1);qs(i+1,hi)}qs(0,a.length-1);[...Array(a.length).keys()].forEach(x=>done.add(x));s.push(snap(a,"Finished: all cards are sorted.",c,w,[],[...done],null,0,"Done"));return s}
+function pseudo(lines,n){$("pseudo").innerHTML=lines.map((x,i)=>`<div class="line ${i===n?"active":""}">${x.replaceAll("<","&lt;").replaceAll(">","&gt;")}</div>`).join("")}
+function render(){let x=states[pos];$("visual").innerHTML=x.a.map((v,i)=>{let cl="card",tag="";if(x.sorted.includes(i)){cl+=" sorted";tag="SORTED"}if(x.cmp.includes(i)){cl+=" compare";tag="CHECK"}if(x.pivot===i){cl+=" pivot";tag="PIVOT"}return `<div class="${cl}">${v}<span class="tag">${tag}</span></div>`}).join("");$("explain").textContent=x.text;$("comparisons").textContent=x.c;$("swaps").textContent=x.w;$("step").textContent=pos;$("status").textContent=x.status;pseudo(info[$("algo").value].pseudo,x.line);$("prev").disabled=pos===0;$("next").disabled=pos===states.length-1}
+function stop(){if(timer){clearInterval(timer);timer=null;$("play").textContent="▶ Play"}}
+function build(){stop();let v=$("numbers").value.split(",").map(x=>Number(x.trim())).filter(Number.isFinite);if(v.length<2||v.length>10){alert("Enter 2–10 numbers separated by commas.");return}let a=$("algo").value;states=a==="bubble"?bubble(v):a==="selection"?selection(v):quick(v);pos=0;$("concept").innerHTML=info[a].concept;render()}
+$("next").onclick=()=>{stop();if(pos<states.length-1){pos++;render()}};$("prev").onclick=()=>{stop();if(pos>0){pos--;render()}};$("reset").onclick=()=>{stop();pos=0;render()};
+$("play").onclick=()=>{if(timer){stop();return}if(pos===states.length-1)pos=0;$("play").textContent="⏸ Pause";timer=setInterval(()=>{if(pos<states.length-1){pos++;render()}else stop()},+$("speed").value)};
+$("apply").onclick=build;$("algo").onchange=build;$("random").onclick=()=>{$("numbers").value=Array.from({length:5},()=>1+Math.floor(Math.random()*9)).join(", ");build()};build();
+</script></body></html>
