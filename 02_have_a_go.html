@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sorting — Have a Go</title><link rel="stylesheet" href="sorting.css"></head><body>
+<header><div class="kicker">TECHQUITY / COMPUTER SCIENCE / HAVE A GO</div><h1>You do the sorting</h1><div class="lead">Use the same <b>3, 5, 2, 3, 1</b> cards and the same routines as Watch & Learn.</div></header><main>
+<div class="panel controls"><label>Algorithm<select id="alg"><option value="bubble">Bubble Sort</option><option value="selection">Selection Sort</option><option value="quick">Quick Sort</option></select></label><label id="pivotWrap" style="display:none">Pivot rule<select id="pivot"><option value="first">First card</option><option value="last">Last card</option><option value="middle">Middle position</option></select></label><button id="reset">Reset</button><button id="keep">Keep / No swap</button><button id="hint">Hint</button></div>
+<div id="rule" class="rule"></div><div class="panel"><div id="stage"></div><div id="msg" class="msg"></div><div class="stats"><div class="stat"><b id="c">0</b><small>Comparisons / scans</small></div><div class="stat"><b id="s">0</b><small>Pair swaps</small></div><div class="stat"><b id="err">0</b><small>Invalid operations</small></div><div class="stat"><b id="st">Ready</b><small>Status</small></div></div></div><div id="selftest" style="display:none"></div></main>
+<script src="sorting.js"></script><script>
+let a=[],trace=null,idx=0,C=0,S=0,E=0,drag=null,qstate=null;
+function swap(i,j){[a[i],a[j]]=[a[j],a[i]]}
+function bad(t){E++;$("err").textContent=E;$("msg").className="msg bad";$("msg").textContent="Invalid operation — "+t}
+function good(t){$("msg").className="msg good";$("msg").textContent=t}
+function reset(){a=[...START];idx=C=S=E=0;drag=null;$("err").textContent=0;$("pivotWrap").style.display=$("alg").value==="quick"?"grid":"none";trace=$("alg").value==="bubble"?bubbleTrace(START):selectionTrace(START);qstate=null;render()}
+function cardHTML(v,i,cls="",tag=""){return `<div class="card ${cls}" draggable="true" data-i="${i}">${v}<span class="tag">${tag}</span></div>`}
+function bindCards(){document.querySelectorAll(".card[draggable=true]").forEach(el=>{el.ondragstart=()=>drag=+el.dataset.i;el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();let j=+el.dataset.i;if(drag!==null&&drag!==j)attemptSwap(drag,j);drag=null}})}
+function render(){
+ let alg=$("alg").value;$("c").textContent=C;$("s").textContent=S;$("err").textContent=E;
+ if(alg==="bubble"){
+  $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";let e=trace.steps[idx];
+  $("stage").innerHTML=`<div class="cards">${a.map((v,i)=>cardHTML(v,i,e&&(i===e.i||i===e.j)?"active":"",e&&i===e.i?"LEFT":e&&i===e.j?"RIGHT":"")).join("")}</div>`;
+  $("keep").style.display=e&&!e.swap?"inline-block":"none";$("msg").className="msg";$("msg").textContent=e?`Pass ${e.pass}: compare the highlighted neighbours ${a[e.i]} and ${a[e.j]}. Work left to right.`:`Sorted: ${a.join(", ")}`;$("st").textContent=e?"Working":"Complete";
+ }else if(alg==="selection"){
+  $("rule").textContent="MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE";let e=trace.steps[idx];
+  $("keep").style.display=e&&e.type==="scan"?"inline-block":"none";
+  let active=e?e.type==="scan"?[e.min,e.j]:e.type==="selswap"?[e.pos,e.min]:[]:[];
+  $("stage").innerHTML=`<div class="cards">${a.map((v,i)=>cardHTML(v,i,active.includes(i)?"active":"",e&&e.type==="scan"&&i===e.min?"MINIMUM":"")).join("")}</div>`;
+  $("msg").className="msg";$("msg").textContent=!e?`Sorted: ${a.join(", ")}`:e.type==="scan"?`Scan ${a[e.j]} against the current minimum. Moving the minimum marker is not a swap. Click Keep / No swap to record this scan.`:e.type==="selswap"?`Scan complete. Drag the minimum into the first unsorted position.`:`Position ${e.pos+1} is fixed.`;$("st").textContent=e?"Working":"Complete";
+ }else renderQuick();
+ bindCards();
+}
+function attemptSwap(i,j){
+ let alg=$("alg").value;if(alg==="quick")return bad("Quick Sort uses left-to-right classification into groups, not pair swaps.");
+ let e=trace.steps[idx];if(!e)return;
+ if(alg==="bubble"){
+  if(!e.swap)return bad("these neighbours should stay in order; use Keep / No swap.");
+  if(!((i===e.i&&j===e.j)||(i===e.j&&j===e.i)))return bad("Bubble Sort swaps only the highlighted adjacent pair.");
+  swap(e.i,e.j);C++;S++;idx++;good("Correct swap. Move one pair to the right.");render();
+ }else{
+  if(e.type!=="selswap")return bad("finish the scan before exchanging cards.");
+  if(!((i===e.pos&&j===e.min)||(i===e.min&&j===e.pos)))return bad("swap the identified minimum with the first unsorted position.");
+  swap(e.pos,e.min);S++;idx++;while(trace.steps[idx]&&trace.steps[idx].type==="selfixed")idx++;good("Correct. Start the next round.");render();
+ }
+}
+$("keep").onclick=()=>{
+ let alg=$("alg").value;if(alg==="quick")return;
+ let e=trace.steps[idx];if(!e)return;
+ if(alg==="bubble"){if(e.swap)return bad("a swap is required.");C++;idx++;good("Correct — keep them. Move one pair to the right.");render()}
+ else {if(e.type!=="scan")return bad("this is not a scan step.");C++;idx++;good("Scan recorded. Continue left to right.");render()}
+};
+function newQGroup(arr,path="whole"){if(arr.length<=1)return null;return {arr:[...arr],pivot:pivotFor(arr,$("pivot").value),at:0,less:[],equal:[],greater:[],path}}
+function renderQuick(){
+ $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";$("keep").style.display="none";
+ if(!qstate)qstate={stack:[{arr:[...START],path:"whole"}],current:null,scans:0,parts:0,done:[]};
+ while(!qstate.current&&qstate.stack.length){
+   let g=qstate.stack.shift();if(g.arr.length<=1){qstate.done.push(...g.arr);continue}
+   qstate.current=newQGroup(g.arr,g.path);qstate.parts++;
+ }
+ if(!qstate.current){$("stage").innerHTML=`<div class="cards">${[1,2,3,3,5].map((v,i)=>cardHTML(v,i,"finished")).join("")}</div>`;$("msg").className="msg good";$("msg").textContent="Complete: 1, 2, 3, 3, 5";$("st").textContent="Complete";$("c").textContent=qstate.scans;return}
+ let g=qstate.current,pv=g.pivot;
+ $("stage").innerHTML=`<div class="cards">${g.arr.map((v,i)=>cardHTML(v,i,i===g.at?"active":(v===pv?"pivot":""),i===g.at?"NEXT":"")).join("")}</div><div class="bins"><div class="bin" data-bin="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>`<div class="card">${v}</div>`).join("")}</div></div><div class="bin" data-bin="equal"><h3>EQUAL to ${pv}</h3><div class="cards">${g.equal.map(v=>`<div class="card pivot">${v}</div>`).join("")}</div></div><div class="bin" data-bin="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>`<div class="card">${v}</div>`).join("")}</div></div></div>`;
+ $("msg").className="msg";$("msg").textContent=`Pivot ${pv}. Do not move the pivot as a setup step. Classify the NEXT card (${g.arr[g.at]}) from left to right by clicking its correct group.`;$("st").textContent="Working";$("c").textContent=qstate.scans;$("s").textContent=0;
+ document.querySelectorAll(".bin").forEach(b=>b.onclick=()=>classify(b.dataset.bin));
+}
+function classify(bin){
+ let g=qstate.current,v=g.arr[g.at],correct=v<g.pivot?"less":v>g.pivot?"greater":"equal";if(bin!==correct)return bad(`${v} belongs in ${correct.toUpperCase()}.`);
+ g[bin].push(v);g.at++;qstate.scans++;C=qstate.scans;good(`Correct: ${v} → ${correct.toUpperCase()}.`);
+ if(g.at===g.arr.length){
+   let children=[];if(g.less.length>1)children.push({arr:g.less,path:g.path+".L"});if(g.greater.length>1)children.push({arr:g.greater,path:g.path+".G"});
+   qstate.stack=children.concat(qstate.stack);qstate.current=null;
+ }
+ render();
+}
+$("hint").onclick=()=>{let alg=$("alg").value;if(alg==="quick"){let g=qstate?.current;if(g){let v=g.arr[g.at],b=v<g.pivot?"LESS":v>g.pivot?"GREATER":"EQUAL";$("msg").textContent=`Hint: ${v} goes to ${b}.`}}else{let e=trace.steps[idx];$("msg").textContent=!e?"Complete.":alg==="bubble"?(e.swap?"Swap the highlighted neighbours.":"Keep the highlighted neighbours."):(e.type==="scan"?"Record the scan with Keep / No swap.":"Swap the minimum into the first unsorted position.")}};
+$("alg").onchange=reset;$("pivot").onchange=reset;$("reset").onclick=reset;reset();
+let f=selfTests();if(location.search.includes("selftest")){$("selftest").style.display="block";$("selftest").textContent=f.length?"SELFTEST FAIL: "+f.join(", "):"SELFTEST PASS";}
+</script></body></html>
