@@ -101,19 +101,39 @@ function selfTests(){
 
 </script><script>
 let idx=-1,trace=null;
-function cards(arr,active=[],finished=[],pivot=null){return `<div class="cards">${arr.map((v,i)=>`<div class="card ${active.includes(i)?"active":""} ${finished.includes(i)?"finished":""} ${pivot===v?"pivot":""}">${v}</div>`).join("")}</div>`}
+function cards(arr,active=[],finished=[],pivotIndex=null){return `<div class="cards">${arr.map((v,i)=>`<div class="card ${active.includes(i)?"active":""} ${finished.includes(i)?"finished":""} ${pivotIndex===i?"pivot":""}">${v}</div>`).join("")}</div>`}
 function reset(){idx=-1;let alg=$("alg").value;$("pivotWrap").style.display=alg==="quick"?"grid":"none";trace=alg==="bubble"?bubbleTrace(START):alg==="selection"?selectionTrace(START):quickTrace(START,$("pivot").value);render()}
 function render(){
  let alg=$("alg").value,stage=$("stage");$("prev").disabled=idx<0;
+
  if(alg==="bubble"){
-  $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";
-  let e=idx<0?null:trace.steps[idx],arr=e?e.after:START,active=e?[e.i,e.j]:[],finished=[];
-  if(e){let next=trace.steps[idx+1];if(!next||next.pass!==e.pass)finished=Array.from({length:START.length-e.finishedFrom},(_,k)=>e.finishedFrom+k);}
-  stage.innerHTML=cards(arr,active,finished);$("c").textContent=e?e.C:0;$("s").textContent=e?e.S:0;$("p").textContent=e?e.pass:0;
-  $("msg").textContent=e?`Pass ${e.pass}: compare ${e.before[e.i]} / ${e.before[e.j]} — ${e.swap?"swap":"keep"}. Then move right.`:"Start at the left: compare 3 and 5.";
-  $("st").textContent=idx===trace.steps.length-1?"Complete":"Watching";
+   $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";
+   if(idx>=trace.steps.length){
+     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
+     $("c").textContent=trace.C;$("s").textContent=trace.S;$("p").textContent=trace.passes;
+     $("msg").textContent="Bubble Sort complete: 1, 2, 3, 3, 5. All cards are now finished.";
+     $("st").textContent="Complete";
+     return;
+   }
+   let e=idx<0?null:trace.steps[idx],arr=e?e.after:START,active=e?[e.i,e.j]:[],finished=[];
+   if(e){
+     let next=trace.steps[idx+1];
+     if(!next||next.pass!==e.pass)finished=Array.from({length:START.length-e.finishedFrom},(_,k)=>e.finishedFrom+k);
+   }
+   stage.innerHTML=cards(arr,active,finished);
+   $("c").textContent=e?e.C:0;$("s").textContent=e?e.S:0;$("p").textContent=e?e.pass:0;
+   $("msg").textContent=e?`Pass ${e.pass}: compare ${e.before[e.i]} / ${e.before[e.j]} — ${e.swap?"swap":"keep"}. Then move right.`:"Start at the left: compare 3 and 5.";
+   $("st").textContent="Watching";
+
  }else if(alg==="selection"){
    $("rule").textContent="MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE";
+   if(idx>=trace.steps.length){
+     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
+     $("c").textContent=trace.C;$("s").textContent=trace.S;$("p").textContent=trace.rounds;
+     $("msg").textContent="Selection Sort complete: 1, 2, 3, 3, 5. All positions are now finished.";
+     $("st").textContent="Complete";
+     return;
+   }
    let e=idx<0?null:trace.steps[idx],arr=e?(e.after||e.state):START,active=[],fin=[];
    if(e){
      if(e.type==="selstart") active=[e.min];
@@ -126,7 +146,7 @@ function render(){
    if(!e){
      $("msg").textContent="Round 1: mark 3 as the starting minimum. Scan every remaining card from left to right: 5, 2, 3, 1.";
    }else if(e.type==="selstart"){
-     $("msg").textContent=`Round ${e.round}: mark ${e.state[e.min]} as the starting minimum. This is the first unsorted card and is not counted as a scan.`;
+     $("msg").textContent=`Round ${e.round}: mark ${e.state[e.min]} as the starting minimum. This is not counted as a scan.`;
    }else if(e.type==="scan"){
      const candidate=e.state[e.j];
      $("msg").textContent=`Round ${e.round}: scan ${candidate}. ${e.min===e.j?candidate+" becomes the new minimum.":"It is not smaller than the current minimum. Keep scanning."}`;
@@ -135,17 +155,27 @@ function render(){
    }else{
      $("msg").textContent=`Round ${e.round} complete. Position ${e.pos+1} is finished.`;
    }
-   $("st").textContent=idx===trace.steps.length-1?"Complete":"Watching";
+   $("st").textContent="Watching";
+
  }else{
-  $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
-  let e=idx<0?null:trace.events[idx],base=e?.arr||START,pv=e?.pivot??pivotFor(START,$("pivot").value);
-  let bins=e&&e.type==="classify"?`<div class="bins"><div class="bin"><h3>LESS than ${pv}</h3>${cards(e.less)}</div><div class="bin"><h3>EQUAL to ${pv}</h3>${cards(e.equal,[],[],pv)}</div><div class="bin"><h3>GREATER than ${pv}</h3>${cards(e.greater)}</div></div>`:"";
-  stage.innerHTML=`${cards(base,e&&e.type==="classify"?[e.index]:[],[],pv)}${bins}`;
-  $("c").textContent=e?e.scans:0;$("s").textContent=0;$("p").textContent=e?e.parts:0;
-  $("msg").textContent=!e?`Choose the ${$("pivot").value} pivot (${pv}). The pivot is not moved. Scan the group from left to right and classify each card into LESS / EQUAL / GREATER.`:e.type==="partitionStart"?`New group: choose pivot ${e.pivot}. Do not move it; begin classifying from the left.`:e.type==="classify"?`Scan ${e.value}: place it in ${e.group.toUpperCase()}. Order of arrival is preserved.`:`Join sorted less + equal + sorted greater: ${e.joined.join(", ")}.`;
-  $("st").textContent=idx===trace.events.length-1?"Complete":"Watching";
+   $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
+   if(idx>=trace.events.length){
+     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
+     $("c").textContent=trace.scans;$("s").textContent=0;$("p").textContent=trace.parts;
+     $("msg").textContent=`Quick Sort complete: ${trace.result.join(", ")}.`;
+     $("st").textContent="Complete";
+     return;
+   }
+   let e=idx<0?null:trace.events[idx],base=e?.arr||START,pv=e?.pivot??pivotFor(START,$("pivot").value);
+   let pivotIndex=e?.arr ? ($("pivot").value==="first"?0:$("pivot").value==="last"?e.arr.length-1:midIndex(e.arr.length))
+                         : ($("pivot").value==="first"?0:$("pivot").value==="last"?START.length-1:midIndex(START.length));
+   let bins=e&&e.type==="classify"?`<div class="bins"><div class="bin"><h3>LESS than ${pv}</h3>${cards(e.less)}</div><div class="bin"><h3>EQUAL to ${pv}</h3>${cards(e.equal)}</div><div class="bin"><h3>GREATER than ${pv}</h3>${cards(e.greater)}</div></div>`:"";
+   stage.innerHTML=`${cards(base,e&&e.type==="classify"?[e.index]:[],[],pivotIndex)}${bins}`;
+   $("c").textContent=e?e.scans:0;$("s").textContent=0;$("p").textContent=e?e.parts:0;
+   $("msg").textContent=!e?`Choose the ${$("pivot").value} pivot (${pv}). The pivot is not moved. Scan the group from left to right and classify each card into LESS / EQUAL / GREATER.`:e.type==="partitionStart"?`New group: choose pivot ${e.pivot}. Do not move it; begin classifying from the left.`:e.type==="classify"?`Scan ${e.value}: place it in ${e.group.toUpperCase()}. Order of arrival is preserved.`:`Join sorted less + equal + sorted greater: ${e.joined.join(", ")}.`;
+   $("st").textContent="Watching";
  }
 }
-$("next").onclick=()=>{let n=$("alg").value==="quick"?trace.events.length:trace.steps.length;if(idx<n-1)idx++;render()};$("prev").onclick=()=>{if(idx>=0)idx--;render()};$("reset").onclick=reset;$("alg").onchange=reset;$("pivot").onchange=reset;reset();
+$("next").onclick=()=>{let n=$("alg").value==="quick"?trace.events.length:trace.steps.length;if(idx<n)idx++;render()};$("prev").onclick=()=>{if(idx>=0)idx--;render()};$("reset").onclick=reset;$("alg").onchange=reset;$("pivot").onchange=reset;reset();
 let f=selfTests();if(location.search.includes("selftest")){$("selftest").style.display="block";$("selftest").textContent=f.length?"SELFTEST FAIL: "+f.join(", "):"SELFTEST PASS";}
 </script></body></html>
