@@ -44,10 +44,10 @@ select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;
 
 .hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}
 .learn-card{background:white;border:2px solid #e4d9ef;border-radius:16px;padding:18px}
-.learn-card h2{margin-top:0}.mini-cards{display:flex;gap:7px;justify-content:center;align-items:center;min-height:80px}
-.mini{width:48px;height:60px;border:3px solid #333;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;background:white;transition:.35s}
-.mini.active{background:#ffe66d}.mini.pivot{background:#e6c8ff}.mini.done{background:#c8efcf}
-.demo-controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.term-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.learn-card h2{margin-top:0}
+
+
+.term-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .term{background:#f7f3fb;border-radius:12px;padding:14px}.eff{width:100%;border-collapse:collapse}.eff th,.eff td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
 @media(max-width:760px){.hero-grid,.term-grid{grid-template-columns:1fr}}
 </style></head><body>
@@ -65,7 +65,6 @@ select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;
 <div class="learn-card"><h2>Selection Sort</h2><p><b>MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE</b></p><p>Finds the minimum in the unsorted section, then places it into the next finished position.</p></div>
 <div class="learn-card"><h2>Quick Sort</h2><p><b>CHOOSE PIVOT → PARTITION → SORT OUTER GROUPS → JOIN</b></p><p>Uses a pivot to split values into LESS, EQUAL and GREATER groups, then sorts the outer groups recursively.</p></div>
 </div>
-<div class="panel"><h2>Animated walkthrough</h2><div class="demo-controls"><button id="bubble">Bubble Sort</button><button id="selection">Selection Sort</button><button id="quick">Quick Sort</button><button id="next" class="primary">Next Step</button><button id="play">Play Animation</button><button id="stop">Stop</button></div><h2 id="demoTitle"></h2><div id="demo"></div><div id="demoMsg" class="msg"></div><p id="stepNo"></p></div>
 <div class="panel"><h2>Key terminology</h2><div class="term-grid">
 <div class="term"><b>Algorithm</b><br>A precise sequence of steps for solving a problem.</div>
 <div class="term"><b>Comparison / scan</b><br>Looking at values to decide what should happen next.</div>
@@ -81,46 +80,4 @@ select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;
 <tr><td>Quick Sort</td><td>Partition around pivots</td><td>Average O(n log n); worst O(n²)</td><td>Good pivots tend to create balanced groups; poor pivots can create uneven groups.</td></tr></table>
 <p><b>For our five-card classroom example:</b> focus first on accurately counting comparisons/scans, swaps and partitions. Big O describes how the algorithm scales when the input becomes much larger.</p></div>
 <div class="panel controls"><a class="primary" href="we_learn.html" style="text-decoration:none;padding:12px 18px;border-radius:10px">Continue to We Learn →</a></div>
-</main><script>
-const $=id=>document.getElementById(id);
-const START=[3,5,2,3,1];
-let alg="bubble",step=0,timer=null;
-const demos={
- bubble:[
-  {a:[3,5,2,3,1],x:[0,1],m:"Compare neighbouring cards. 3 and 5 are already in order, so keep them."},
-  {a:[3,5,2,3,1],x:[1,2],m:"5 is greater than 2, so swap the neighbours."},
-  {a:[3,2,5,3,1],x:[2,3],m:"Continue moving right. Swap 5 and 3."},
-  {a:[3,2,3,5,1],x:[3,4],m:"Swap 5 and 1. The largest card has bubbled to the right."},
-  {a:[1,2,3,3,5],x:[],done:true,m:"Repeated passes eventually leave the whole list sorted."}
- ],
- selection:[
-  {a:[3,5,2,3,1],x:[0],m:"Mark the first unsorted card as the current minimum."},
-  {a:[3,5,2,3,1],x:[0,2],m:"Scan the remaining cards. 2 becomes the new minimum."},
-  {a:[3,5,2,3,1],x:[2,4],m:"Continue the whole scan. 1 becomes the minimum."},
-  {a:[1,5,2,3,3],x:[0],done:[0],m:"After the scan, swap the minimum into the first unsorted position."},
-  {a:[1,2,3,3,5],x:[],done:true,m:"Repeat for each remaining position until sorted."}
- ],
- quick:[
-  {a:[3,5,2,3,1],x:[0],pivot:0,m:"Choose a pivot. Here the first card, 3, is the reference value."},
-  {groups:[[2,1],[3,3],[5]],m:"Partition every card into LESS, EQUAL or GREATER than the pivot."},
-  {groups:[[1,2],[3,3],[5]],m:"Recursively sort the outer groups. Groups of 0 or 1 card stop."},
-  {a:[1,2,3,3,5],x:[],done:true,m:"Join LESS + EQUAL + GREATER to produce the sorted list."}
- ]
-};
-function cards(arr,x=[],pivot=null,done=false){
- return `<div class="mini-cards">${arr.map((v,i)=>`<div class="mini ${x.includes(i)?"active":""} ${pivot===i?"pivot":""} ${done===true||Array.isArray(done)&&done.includes(i)?"done":""}">${v}</div>`).join("")}</div>`;
-}
-function render(){
- let d=demos[alg][step];
- $("demoTitle").textContent=alg==="bubble"?"Bubble Sort":alg==="selection"?"Selection Sort":"Quick Sort";
- if(d.groups){
-   $("demo").innerHTML=`<div class="bins"><div class="bin"><h3>LESS</h3>${cards(d.groups[0])}</div><div class="bin"><h3>EQUAL</h3>${cards(d.groups[1],[],null)}</div><div class="bin"><h3>GREATER</h3>${cards(d.groups[2])}</div></div>`;
- }else $("demo").innerHTML=cards(d.a,d.x||[],d.pivot??null,d.done||false);
- $("demoMsg").textContent=d.m;$("stepNo").textContent=`Step ${step+1} of ${demos[alg].length}`;
-}
-function choose(a){clearInterval(timer);alg=a;step=0;render()}
-$("bubble").onclick=()=>choose("bubble");$("selection").onclick=()=>choose("selection");$("quick").onclick=()=>choose("quick");
-$("next").onclick=()=>{step=(step+1)%demos[alg].length;render()};
-$("play").onclick=()=>{clearInterval(timer);timer=setInterval(()=>{step=(step+1)%demos[alg].length;render()},1800)};
-$("stop").onclick=()=>clearInterval(timer);render();
-</script></body></html>
+</main></body></html>
