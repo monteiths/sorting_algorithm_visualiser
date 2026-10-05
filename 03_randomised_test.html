@@ -75,12 +75,31 @@ function startChallenge(){
 }
 function bind(){
  document.querySelectorAll(".card[draggable=true]").forEach(el=>{
-  el.ondragstart=e=>{drag=+el.dataset.i;e.dataTransfer.setData("text/plain",String(drag))};el.ondragend=()=>drag=null;
-  el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();if(drag!==null&&+el.dataset.i!==drag)dropCard(+el.dataset.i,el)}
+  el.ondragstart=e=>{
+    drag=Number(el.dataset.i);
+    e.dataTransfer.effectAllowed="move";
+    e.dataTransfer.setData("text/plain",String(drag));
+  };
+  el.ondragend=()=>{setTimeout(()=>drag=null,0)};
+  el.ondragover=e=>e.preventDefault();
+  el.ondrop=e=>{
+    e.preventDefault();e.stopPropagation();
+    const src=e.dataTransfer.getData("text/plain");
+    if(src!=="")drag=Number(src);
+    if(drag!==null&&+el.dataset.i!==drag)dropCard(+el.dataset.i,el);
+    drag=null;
+  };
  });
  document.querySelectorAll(".dropzone").forEach(z=>{
-  z.ondragover=e=>{e.preventDefault();z.classList.add("over")};z.ondragleave=()=>z.classList.remove("over");
-  z.ondrop=e=>{e.preventDefault();e.stopPropagation();z.classList.remove("over");dropZone(z.dataset.zone,z)}
+  z.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect="move";z.classList.add("over")};
+  z.ondragleave=()=>z.classList.remove("over");
+  z.ondrop=e=>{
+    e.preventDefault();e.stopPropagation();z.classList.remove("over");
+    const src=e.dataTransfer.getData("text/plain");
+    if(src!=="")drag=Number(src);
+    dropZone(z.dataset.zone,z);
+    drag=null;
+  };
  });
 }
 function render(){$("c").textContent=C;$("s").textContent=S;$("err").textContent=E;if(t().alg==="bubble")renderBubble();else if(t().alg==="selection")renderSelection();else renderQuick();bind()}
@@ -135,7 +154,7 @@ function renderQuick(){
  initQ();nextQ();if(!qstate.current){C=qstate.scans;return challengeDone()}
  let g=qstate.current,pv=g.pivot;
  $("stage").innerHTML=`<div class="cards">${g.arr.map((v,i)=>{let cls=i===g.pivotIndex?"pivot":"";if(i===g.at)cls+=(cls?" ":"")+"active";if(g.phase==="classify"&&(i<g.at||i===g.pivotIndex))cls+=(cls?" ":"")+"dim";return card(v,i,cls,i===g.pivotIndex?"PIVOT":i===g.at?"NEXT":"")}).join("")}</div>
- <div class="bins"><div class="bin dropzone" data-zone="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>placedCard(v)).join("")}</div></div><div class="bin dropzone" data-zone="equal"><h3>EQUAL to ${pv} / PIVOT GROUP</h3><div class="cards">${g.equal.map(v=>placedCard(v,"pivot")).join("")}</div></div><div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>placedCard(v)).join("")}</div></div></div>`;
+ <div class="bins"><div class="bin dropzone" data-zone="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>placedCard(v)).join("")}</div></div><div class="bin dropzone" data-zone="equal"><h3>DROP PIVOT HERE — EQUAL to ${pv}</h3><div class="cards">${g.equal.map(v=>placedCard(v,"pivot")).join("")}</div></div><div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>placedCard(v)).join("")}</div></div></div>`;
  setMsg(g.phase==="placePivot"?`First drag the pink pivot ${pv} into EQUAL / PIVOT GROUP.`:`Pivot ${pv} is set. Work left to right: drag NEXT (${g.arr[g.at]}) into the correct group.`);
  C=qstate.scans;$("c").textContent=C;
 }
