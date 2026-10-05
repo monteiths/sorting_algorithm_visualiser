@@ -10,7 +10,8 @@ function render(){
  let alg=$("alg").value,stage=$("stage");$("prev").disabled=idx<0;
  if(alg==="bubble"){
   $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";
-  let e=idx<0?null:trace.steps[idx],arr=e?e.after:START,active=e?[e.i,e.j]:[],finished=e?Array.from({length:START.length-e.finishedFrom},(_,k)=>e.finishedFrom+k):[];
+  let e=idx<0?null:trace.steps[idx],arr=e?e.after:START,active=e?[e.i,e.j]:[],finished=[];
+  if(e){let next=trace.steps[idx+1];if(!next||next.pass!==e.pass)finished=Array.from({length:START.length-e.finishedFrom},(_,k)=>e.finishedFrom+k);}
   stage.innerHTML=cards(arr,active,finished);$("c").textContent=e?e.C:0;$("s").textContent=e?e.S:0;$("p").textContent=e?e.pass:0;
   $("msg").textContent=e?`Pass ${e.pass}: compare ${e.before[e.i]} / ${e.before[e.j]} — ${e.swap?"swap":"keep"}. Then move right.`:"Start at the left: compare 3 and 5.";
   $("st").textContent=idx===trace.steps.length-1?"Complete":"Watching";
