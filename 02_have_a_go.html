@@ -1,0 +1,47 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sorting Visualiser — Have a Go</title><style>
+:root{--ink:#172033;--muted:#64748b;--paper:#f7f8fb;--panel:#fff;--accent:#635bff;--warn:#f59e0b;--good:#16a34a;--bad:#dc2626;--pivot:#db2777;--border:#dfe3eb}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--paper);color:var(--ink)}
+header,main{max-width:1180px;margin:auto}header{padding:17px 14px 10px}main{padding:0 14px 18px}
+h1{margin:0 0 5px;font-size:clamp(1.5rem,3vw,2.3rem);letter-spacing:-.04em}.sub,.small{color:var(--muted);line-height:1.45}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;padding:15px;margin-bottom:11px;box-shadow:0 8px 24px rgba(23,32,51,.08)}
+.controls{display:flex;gap:9px;flex-wrap:wrap;align-items:end}label{display:grid;gap:4px;font-size:.78rem;font-weight:800;color:var(--muted)}
+select,input,button{font:inherit;border:1px solid var(--border);border-radius:9px;padding:9px 11px;background:#fff;color:var(--ink)}
+button{cursor:pointer;font-weight:750}.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button:disabled{opacity:.4}
+.board{min-height:205px;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;padding:28px 8px 40px}
+.card{width:92px;height:120px;border:3px solid var(--accent);border-radius:15px;background:#f0efff;display:grid;place-items:center;font-size:2.3rem;font-weight:900;position:relative;user-select:none;transition:.2s}
+.drag .card{cursor:grab}.card.dragging{opacity:.5;transform:scale(.94)}.card.over{outline:4px dashed #94a3b8;outline-offset:4px}
+.card.compare,.card.focus{transform:translateY(-10px);background:#fff4d6;border-color:var(--warn)}.card.sorted{background:#e7f7ec;border-color:var(--good)}.card.pivot{background:#fce7f3;border-color:var(--pivot)}
+.card.bad{background:#fee2e2;border-color:var(--bad);animation:shake .38s}.tag{position:absolute;bottom:-27px;font-size:.65rem;color:var(--muted);font-weight:850;white-space:nowrap}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.msg,.explain{min-height:55px;padding:13px 15px;border-radius:10px;background:#eef2ff;border-left:5px solid var(--accent);font-weight:700;line-height:1.45}.msg.error{background:#fef2f2;border-color:var(--bad);color:#991b1b}.msg.ok{background:#f0fdf4;border-color:var(--good);color:#166534}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}.stat{text-align:center;padding:9px;border:1px solid var(--border);border-radius:10px;background:#f8fafc}.stat b{display:block;font-size:1.35rem}.stat span{font-size:.65rem;color:var(--muted);font-weight:800;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:11px}pre{white-space:pre-wrap;margin:0;font:.82rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.line{padding:2px 6px;border-radius:5px}.line.active{background:#fff1b8}
+.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin:6px 0 10px}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+.progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:var(--accent);transition:.2s}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.card{width:61px;height:86px;font-size:1.65rem}.stats{grid-template-columns:repeat(2,1fr)}.board{gap:8px;min-height:165px}}
+</style></head>
+<body class="drag"><header><h1>Sorting Algorithm Visualiser</h1><div class="sub">Now have a go yourself with the same cards: <b>3, 5, 2, 3, 1</b>. Incorrect operations turn red and are rejected.</div></header><main>
+<section class="panel"><div class="controls"><label>Algorithm<select id="algo"><option value="bubble">Bubble Sort</option><option value="selection">Selection Sort</option><option value="quick">Quick Sort</option></select></label><label id="pivotwrap" style="display:none">Quick Sort pivot<select id="pivot"><option value="first">First</option><option value="middle">Middle</option><option value="last" selected>Last</option></select></label><button id="reset" class="primary">↺ Reset to 3, 5, 2, 3, 1</button><button id="hint">Show Hint</button></div></section>
+<section class="panel"><div id="board" class="board"></div><div id="msg" class="msg">Drag one card onto another to make the next valid swap.</div>
+<div class="stats"><div class="stat"><b id="moves">0</b><span>Valid moves</span></div><div class="stat"><b id="errors">0</b><span>Invalid moves</span></div><div class="stat"><b id="comparisons">0</b><span>Comparisons</span></div><div class="stat"><b id="status">Ready</b><span>Status</span></div></div></section>
+<section class="grid"><div class="panel"><h3>What the algorithm is doing</h3><div id="concept"></div></div><div class="panel"><h3>Pseudocode</h3><pre id="pseudo"></pre></div></section></main>
+<script>
+const ORIGINAL=[3,5,2,3,1];
+function sw(a,i,j){[a[i],a[j]]=[a[j],a[i]]}
+function pi(lo,hi,m){return m==="first"?lo:m==="middle"?Math.floor((lo+hi)/2):hi}
+function makePlan(input,alg,piv="last"){
+ let a=[...input],p=[],comp=0,fixed=new Set();
+ if(alg==="bubble"){for(let e=a.length-1;e>0;e--){let ch=false;for(let i=0;i<e;i++){comp++;if(a[i]>a[i+1]){p.push({i,j:i+1,comp,text:`${a[i]} > ${a[i+1]}: swap these adjacent cards.`});sw(a,i,i+1);ch=true}}if(!ch)break}}
+ else if(alg==="selection"){for(let i=0;i<a.length-1;i++){let m=i;for(let j=i+1;j<a.length;j++){comp++;if(a[j]<a[m])m=j}if(m!==i){p.push({i,j:m,comp,text:`${a[m]} is the smallest remaining value: swap it into position ${i+1}.`});sw(a,i,m)}}}
+ else {function q(lo,hi){if(lo>=hi)return;let k=pi(lo,hi,piv);if(k!==hi){p.push({i:k,j:hi,comp,text:`Move the chosen pivot ${a[k]} to the end of this partition.`,pivot:k});sw(a,k,hi)}let pv=a[hi],st=lo;for(let j=lo;j<hi;j++){comp++;if(a[j]<=pv){if(j!==st){p.push({i:j,j:st,comp,text:`${a[j]} ≤ pivot ${pv}: move it into the left partition.`,pivot:hi});sw(a,j,st)}st++}}if(st!==hi){p.push({i:hi,j:st,comp,text:`Put pivot ${pv} into its final position.`,pivot:hi});sw(a,hi,st)}q(lo,st-1);q(st+1,hi)}q(0,a.length-1)}
+ return p;
+}
+
+const $=x=>document.getElementById(x);let arr=[],plan=[],step=0,moves=0,errors=0,from=null;
+const info={bubble:["Compare adjacent values.","Swap only when left > right."],selection:["Find the smallest unsorted value.","Swap it into the first unsorted position."],quick:["Choose a pivot.","Partition values around the pivot, then repeat."]};
+function reset(){arr=[...ORIGINAL];plan=makePlan(arr,$("algo").value,$("pivot").value);step=moves=errors=0;$("msg").className="msg";$("msg").textContent="Reset complete. Start again from 3, 5, 2, 3, 1.";render()}
+function render(){let c=plan[step];$("board").innerHTML=arr.map((v,i)=>`<div draggable="true" data-i="${i}" class="card ${c&&(i===c.i||i===c.j)?"focus ":""}${c&&i===c.pivot?"pivot":""}">${v}<span class="tag">${c&&i===c.pivot?"PIVOT":c&&(i===c.i||i===c.j)?"MOVE":""}</span></div>`).join("");$("moves").textContent=moves;$("errors").textContent=errors;$("comparisons").textContent=c?c.comp:(plan.at(-1)?.comp||0);$("status").textContent=c?"Working":"Complete";$("concept").innerHTML=`<p><b>${$("algo").selectedOptions[0].text}</b></p><p>${info[$("algo").value][0]} ${info[$("algo").value][1]}</p>`;$("pseudo").textContent=info[$("algo").value].join("\n");bind();if(!c){$("msg").className="msg ok";$("msg").textContent=`Correct — sorted: ${arr.join(", ")}.`}}
+function attempt(i,j){let c=plan[step];if(!c)return;if((i===c.i&&j===c.j)||(i===c.j&&j===c.i)){sw(arr,c.i,c.j);moves++;step++;$("msg").className="msg ok";$("msg").textContent="Valid operation — correct.";render()}else{errors++;$("errors").textContent=errors;$("msg").className="msg error";$("msg").textContent="Invalid operation — that move is not permitted at this point.";document.querySelectorAll(".card").forEach(e=>{let n=+e.dataset.i;if(n===i||n===j){e.classList.add("bad");setTimeout(()=>e.classList.remove("bad"),450)}})}}
+function bind(){document.querySelectorAll(".card").forEach(e=>{e.ondragstart=()=>{from=+e.dataset.i;e.classList.add("dragging")};e.ondragend=()=>e.classList.remove("dragging");e.ondragover=x=>{x.preventDefault();e.classList.add("over")};e.ondragleave=()=>e.classList.remove("over");e.ondrop=x=>{x.preventDefault();e.classList.remove("over");let j=+e.dataset.i;if(from!==null&&from!==j)attempt(from,j);from=null}})}
+$("algo").onchange=()=>{$("pivotwrap").style.display=$("algo").value==="quick"?"grid":"none";reset()};$("pivot").onchange=reset;$("reset").onclick=reset;$("hint").onclick=()=>{let c=plan[step];if(c){$("msg").className="msg";$("msg").textContent=`Hint: swap position ${c.i+1} (${arr[c.i]}) with position ${c.j+1} (${arr[c.j]}).`}};reset();
+</script></body></html>

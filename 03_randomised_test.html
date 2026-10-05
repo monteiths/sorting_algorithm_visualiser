@@ -1,0 +1,57 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sorting Algorithms — Test</title><style>
+:root{--ink:#172033;--muted:#64748b;--paper:#f7f8fb;--panel:#fff;--accent:#635bff;--warn:#f59e0b;--good:#16a34a;--bad:#dc2626;--pivot:#db2777;--border:#dfe3eb}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--paper);color:var(--ink)}
+header,main{max-width:1180px;margin:auto}header{padding:17px 14px 10px}main{padding:0 14px 18px}
+h1{margin:0 0 5px;font-size:clamp(1.5rem,3vw,2.3rem);letter-spacing:-.04em}.sub,.small{color:var(--muted);line-height:1.45}
+.panel{background:#fff;border:1px solid var(--border);border-radius:15px;padding:15px;margin-bottom:11px;box-shadow:0 8px 24px rgba(23,32,51,.08)}
+.controls{display:flex;gap:9px;flex-wrap:wrap;align-items:end}label{display:grid;gap:4px;font-size:.78rem;font-weight:800;color:var(--muted)}
+select,input,button{font:inherit;border:1px solid var(--border);border-radius:9px;padding:9px 11px;background:#fff;color:var(--ink)}
+button{cursor:pointer;font-weight:750}.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button:disabled{opacity:.4}
+.board{min-height:205px;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;padding:28px 8px 40px}
+.card{width:92px;height:120px;border:3px solid var(--accent);border-radius:15px;background:#f0efff;display:grid;place-items:center;font-size:2.3rem;font-weight:900;position:relative;user-select:none;transition:.2s}
+.drag .card{cursor:grab}.card.dragging{opacity:.5;transform:scale(.94)}.card.over{outline:4px dashed #94a3b8;outline-offset:4px}
+.card.compare,.card.focus{transform:translateY(-10px);background:#fff4d6;border-color:var(--warn)}.card.sorted{background:#e7f7ec;border-color:var(--good)}.card.pivot{background:#fce7f3;border-color:var(--pivot)}
+.card.bad{background:#fee2e2;border-color:var(--bad);animation:shake .38s}.tag{position:absolute;bottom:-27px;font-size:.65rem;color:var(--muted);font-weight:850;white-space:nowrap}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.msg,.explain{min-height:55px;padding:13px 15px;border-radius:10px;background:#eef2ff;border-left:5px solid var(--accent);font-weight:700;line-height:1.45}.msg.error{background:#fef2f2;border-color:var(--bad);color:#991b1b}.msg.ok{background:#f0fdf4;border-color:var(--good);color:#166534}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}.stat{text-align:center;padding:9px;border:1px solid var(--border);border-radius:10px;background:#f8fafc}.stat b{display:block;font-size:1.35rem}.stat span{font-size:.65rem;color:var(--muted);font-weight:800;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:11px}pre{white-space:pre-wrap;margin:0;font:.82rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}.line{padding:2px 6px;border-radius:5px}.line.active{background:#fff1b8}
+.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin:6px 0 10px}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+.progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden}.progress>div{height:100%;background:var(--accent);transition:.2s}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.card{width:61px;height:86px;font-size:1.65rem}.stats{grid-template-columns:repeat(2,1fr)}.board{gap:8px;min-height:165px}}
+
+.cert{display:none;text-align:center;padding:35px;border:6px double var(--accent);background:white}.cert.show{display:block}.email{width:min(360px,90vw)}@media print{body>*:not(main),main>*:not(#certificate){display:none!important}#certificate{display:block!important;border:6px double #000}}
+</style></head><body class="drag">
+<header><h1>Sorting Algorithms Test</h1><div class="sub">10 randomised challenges. Each set contains no more than five single-digit cards. Complete the specified algorithm correctly.</div></header><main>
+<section id="setup" class="panel"><h3>Student details</h3><div class="controls"><label>Email address<input class="email" id="email" type="email" placeholder="student@example.com"></label><button id="start" class="primary">Start randomised test</button></div><p class="small">Your test order and card sets are randomised when you start.</p></section>
+<section id="testpanel" style="display:none">
+<div class="panel"><div class="progress"><div id="bar"></div></div><p><b id="qtitle"></b></p><div id="instruction" class="sub"></div></div>
+<div class="panel"><div id="board" class="board"></div><div id="msg" class="msg">Drag cards to perform the next valid operation.</div>
+<div class="stats"><div class="stat"><b id="qnum">1/10</b><span>Question</span></div><div class="stat"><b id="moves">0</b><span>Valid moves</span></div><div class="stat"><b id="errors">0</b><span>Errors</span></div><div class="stat"><b id="score">0</b><span>Completed</span></div></div></div></section>
+<section id="certificate" class="cert"><h1>Certificate of Completion</h1><h2>Sorting Algorithms Challenge</h2><p>This certifies that</p><h3 id="certemail"></h3><p>completed all 10 randomised Bubble Sort, Selection Sort and Quick Sort challenges.</p><p id="certresult"></p><p><b id="certdate"></b></p><div class="controls" style="justify-content:center"><button onclick="window.print()">Print / Save Certificate</button><button id="emailCert" class="primary">Email Certificate</button></div><p id="emailStatus" class="small"></p></section>
+</main>
+<script>
+const ORIGINAL=[3,5,2,3,1];
+function sw(a,i,j){[a[i],a[j]]=[a[j],a[i]]}
+function pi(lo,hi,m){return m==="first"?lo:m==="middle"?Math.floor((lo+hi)/2):hi}
+function makePlan(input,alg,piv="last"){
+ let a=[...input],p=[],comp=0,fixed=new Set();
+ if(alg==="bubble"){for(let e=a.length-1;e>0;e--){let ch=false;for(let i=0;i<e;i++){comp++;if(a[i]>a[i+1]){p.push({i,j:i+1,comp,text:`${a[i]} > ${a[i+1]}: swap these adjacent cards.`});sw(a,i,i+1);ch=true}}if(!ch)break}}
+ else if(alg==="selection"){for(let i=0;i<a.length-1;i++){let m=i;for(let j=i+1;j<a.length;j++){comp++;if(a[j]<a[m])m=j}if(m!==i){p.push({i,j:m,comp,text:`${a[m]} is the smallest remaining value: swap it into position ${i+1}.`});sw(a,i,m)}}}
+ else {function q(lo,hi){if(lo>=hi)return;let k=pi(lo,hi,piv);if(k!==hi){p.push({i:k,j:hi,comp,text:`Move the chosen pivot ${a[k]} to the end of this partition.`,pivot:k});sw(a,k,hi)}let pv=a[hi],st=lo;for(let j=lo;j<hi;j++){comp++;if(a[j]<=pv){if(j!==st){p.push({i:j,j:st,comp,text:`${a[j]} ≤ pivot ${pv}: move it into the left partition.`,pivot:hi});sw(a,j,st)}st++}}if(st!==hi){p.push({i:hi,j:st,comp,text:`Put pivot ${pv} into its final position.`,pivot:hi});sw(a,hi,st)}q(lo,st-1);q(st+1,hi)}q(0,a.length-1)}
+ return p;
+}
+
+const $=x=>document.getElementById(x);let tests=[],q=0,arr=[],plan=[],step=0,moves=0,errors=0,from=null,email="";
+const algs=["bubble","selection","quick"],pivs=["first","middle","last"];
+function name(a){return a==="bubble"?"Bubble Sort":a==="selection"?"Selection Sort":"Quick Sort"}
+function makeTests(){let t=[];for(let n=0;n<10;n++){let len=3+Math.floor(Math.random()*3),cards=Array.from({length:len},()=>1+Math.floor(Math.random()*9));if(cards.every((v,i)=>i===0||v>=cards[i-1]))cards.reverse();let alg=algs[Math.floor(Math.random()*algs.length)],pivot=pivs[Math.floor(Math.random()*3)];t.push({cards,alg,pivot})}return t.sort(()=>Math.random()-.5)}
+function loadQ(){let t=tests[q];arr=[...t.cards];plan=makePlan(arr,t.alg,t.pivot);step=0;$("qnum").textContent=`${q+1}/10`;$("qtitle").textContent=`Question ${q+1} — ${name(t.alg)}`;$("instruction").textContent=t.alg==="quick"?`Use a ${t.pivot.toUpperCase()} pivot for each partition.`:`Use the ${name(t.alg)} rules.`;$("bar").style.width=`${q*10}%`;$("msg").className="msg";$("msg").textContent="Perform the valid swaps in order.";render()}
+function render(){let c=plan[step];$("board").innerHTML=arr.map((v,i)=>`<div draggable="true" data-i="${i}" class="card ${c&&(i===c.i||i===c.j)?"focus ":""}${c&&i===c.pivot?"pivot":""}">${v}<span class="tag">${c&&i===c.pivot?"PIVOT":""}</span></div>`).join("");$("moves").textContent=moves;$("errors").textContent=errors;$("score").textContent=q;bind();if(!c)setTimeout(completeQ,350)}
+function completeQ(){if(q>=tests.length)return;q++;if(q===10)return finish();$("msg").className="msg ok";$("msg").textContent="Question complete.";setTimeout(loadQ,650)}
+function attempt(i,j){let c=plan[step];if(!c)return;if((i===c.i&&j===c.j)||(i===c.j&&j===c.i)){sw(arr,c.i,c.j);moves++;step++;$("msg").className="msg ok";$("msg").textContent="Valid operation.";render()}else{errors++;$("errors").textContent=errors;$("msg").className="msg error";$("msg").textContent="Invalid operation — move rejected.";document.querySelectorAll(".card").forEach(e=>{let n=+e.dataset.i;if(n===i||n===j){e.classList.add("bad");setTimeout(()=>e.classList.remove("bad"),430)}})}}
+function bind(){document.querySelectorAll(".card").forEach(e=>{e.ondragstart=()=>from=+e.dataset.i;e.ondragover=x=>x.preventDefault();e.ondrop=x=>{x.preventDefault();let j=+e.dataset.i;if(from!==null&&from!==j)attempt(from,j);from=null}})}
+function finish(){$("testpanel").style.display="none";$("certificate").classList.add("show");$("certemail").textContent=email;$("certresult").textContent=`10/10 challenges completed • ${moves} valid moves • ${errors} invalid attempts`;$("certdate").textContent=new Date().toLocaleDateString();$("bar").style.width="100%"}
+$("start").onclick=()=>{email=$("email").value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return alert("Enter a valid email address.");tests=makeTests();q=moves=errors=0;$("setup").style.display="none";$("testpanel").style.display="block";loadQ()};
+$("emailCert").onclick=async()=>{let endpoint="PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";if(endpoint.startsWith("PASTE_")){$("emailStatus").textContent="Email sending needs the included Google Apps Script to be deployed once. See README.";return}$("emailStatus").textContent="Sending…";try{let r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({email,completed:10,moves,errors,date:new Date().toLocaleDateString()})});let x=await r.json();$("emailStatus").textContent=x.ok?"Certificate emailed successfully.":"Email could not be sent."}catch(e){$("emailStatus").textContent="Email could not be sent."}};
+</script></body></html>
