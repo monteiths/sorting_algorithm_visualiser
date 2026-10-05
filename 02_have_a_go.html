@@ -209,7 +209,7 @@ function selectionSwap(i,j,target){
 function newQGroup(arr){
  if(arr.length<=1)return null;
  const pi=pivotIndexFor(arr,$("pivot").value);
- return {arr:[...arr],pivotIndex:pi,pivot:arr[pi],at:0,less:[],equal:[],greater:[]};
+ return {arr:[...arr],pivotIndex:pi,pivot:arr[pi],at:pi,phase:"placePivot",less:[],equal:[],greater:[]};
 }
 function initQuick(){
  if(q)return;
@@ -222,8 +222,14 @@ function getNextQGroup(){
    q.current=newQGroup(arr);q.parts++;
  }
 }
+function nextUnclassifiedIndex(g,start=0){
+ for(let i=start;i<g.arr.length;i++){
+   if(i!==g.pivotIndex)return i;
+ }
+ return g.arr.length;
+}
 function renderQuick(){
- $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
+ $("rule").textContent="CHOOSE PIVOT → PLACE PIVOT IN EQUAL → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
  initQuick();getNextQGroup();
  if(!q.current){
    const sorted=[...START].sort((x,y)=>x-y);C=q.scans;$("c").textContent=C;return finish(sorted,"Quick Sort");
@@ -232,7 +238,7 @@ function renderQuick(){
  const main=g.arr.map((v,i)=>{
    let cls=i===g.pivotIndex?"pivot":"";
    if(i===g.at)cls+=(cls?" ":"")+"active";
-   if(i<g.at)cls+=(cls?" ":"")+"dim";
+   if(g.phase==="classify" && (i<g.at || i===g.pivotIndex))cls+=(cls?" ":"")+"dim";
    return card(v,i,cls,i===g.pivotIndex?"PIVOT":i===g.at?"NEXT":"");
  }).join("");
  $("stage").innerHTML=`<div class="cards">${main}</div>
@@ -241,26 +247,44 @@ function renderQuick(){
   <div class="bin dropzone" data-zone="equal"><h3>EQUAL to ${pv} / PIVOT GROUP</h3><div class="cards">${g.equal.map(v=>placedCard(v,"pivot")).join("")}</div></div>
   <div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>placedCard(v)).join("")}</div></div>
  </div>`;
- setMsg(`Pivot ${pv}. It stays where it is as the reference. Work left to right: drag NEXT (${g.arr[g.at]}) into LESS, EQUAL / PIVOT GROUP or GREATER.`);
+ if(g.phase==="placePivot"){
+   setMsg(`Pivot ${pv}. First drag the pink PIVOT card into EQUAL / PIVOT GROUP. This establishes the pivot before scanning the other cards.`);
+ }else{
+   setMsg(`Pivot ${pv} is set. Now work left to right: drag NEXT (${g.arr[g.at]}) into LESS, EQUAL / PIVOT GROUP or GREATER.`);
+ }
  C=q.scans;$("c").textContent=C;$("s").textContent=0;
+}
+function finishQuickGroup(g){
+ const children=[];
+ if(g.less.length>1)children.push([...g.less]);
+ if(g.greater.length>1)children.push([...g.greater]);
+ q.stack=children.concat(q.stack);q.current=null;
+ render();
 }
 function quickZone(zone,el){
  const g=q.current;if(!g)return;
+
+ if(g.phase==="placePivot"){
+   if(drag!==g.pivotIndex)return flashWrong(el,"place the pink PIVOT card first.");
+   if(zone!=="equal")return flashWrong(el,`the pivot ${g.pivot} belongs in EQUAL / PIVOT GROUP.`);
+   g.equal.push(g.pivot);
+   q.scans++; C=q.scans; // teacher routine deals every card once, including pivot
+   g.phase="classify";
+   g.at=nextUnclassifiedIndex(g,0);
+   setMsg(`Correct — pivot ${g.pivot} is in EQUAL / PIVOT GROUP. Now scan the remaining cards from left to right.`,"good");
+   if(g.at>=g.arr.length)return finishQuickGroup(g);
+   return render();
+ }
+
  if(drag!==g.at)return flashWrong(el,"Quick Sort must classify the NEXT card from left to right.");
  const v=g.arr[g.at],correct=v<g.pivot?"less":v>g.pivot?"greater":"equal";
  if(zone!==correct)return flashWrong(el,`${v} belongs in ${correct.toUpperCase()}.`);
- g[correct].push(v);g.at++;q.scans++;C=q.scans;
+ g[correct].push(v);q.scans++;C=q.scans;
+ g.at=nextUnclassifiedIndex(g,g.at+1);
  setMsg(`Correct — ${v} → ${correct.toUpperCase()}.`,"good");
- if(g.at===g.arr.length){
-   // Match Watch & Learn: recursively sort LESS first, then GREATER.
-   const children=[];
-   if(g.less.length>1)children.push([...g.less]);
-   if(g.greater.length>1)children.push([...g.greater]);
-   q.stack=children.concat(q.stack);q.current=null;
- }
+ if(g.at>=g.arr.length)return finishQuickGroup(g);
  render();
 }
-
 function dropOnCard(j,target){
  if(drag===null)return;
  if(alg==="bubble")bubbleSwap(drag,j,target);
@@ -286,7 +310,10 @@ $("hint").onclick=()=>{
    else if(selPhase==="scan")setMsg(a[selJ]<a[selMin]?"Hint: drag the candidate to NEW MINIMUM.":"Hint: drag the candidate to KEEP CURRENT MINIMUM.");
    else setMsg(selMin===selPos?"Hint: no swap is needed.":"Hint: drag the MINIMUM onto FIRST UNSORTED.");
  } else {
-   const g=q?.current;if(g){const v=g.arr[g.at],dest=v<g.pivot?"LESS":v>g.pivot?"GREATER":"EQUAL";setMsg(`Hint: drag ${v} to ${dest}.`)}
+   const g=q?.current;if(g){
+     if(g.phase==="placePivot")setMsg(`Hint: drag the pink pivot ${g.pivot} to EQUAL / PIVOT GROUP first.`);
+     else {const v=g.arr[g.at],dest=v<g.pivot?"LESS":v>g.pivot?"GREATER":"EQUAL";setMsg(`Hint: drag ${v} to ${dest}.`)}
+   }
  }
 };
 $("alg").onchange=reset;$("pivot").onchange=reset;$("reset").onclick=reset;
