@@ -1,40 +1,158 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sorting — Test</title><link rel="stylesheet" href="sorting.css"></head><body>
-<header><div class="kicker">TECHQUITY / COMPUTER SCIENCE / TEST</div><h1>Sorting Algorithms Certificate Test</h1><div class="lead">Complete 10 randomised challenges using the same routines as Watch & Learn and Have a Go.</div></header><main>
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorting — Certificate Test</title><style>:root{--purple:#651394;--purple2:#8a35b4;--ink:#262331;--muted:#6e6a75;--paper:#fbfafc;--line:#ddd7e2;--yellow:#fff1b8;--yellowLine:#c69210;--green:#dff5e9;--greenLine:#23855f;--pink:#f0ddf8;--bad:#fde2e2;--badLine:#c73535}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+header,main{max-width:1080px;margin:auto;padding:18px}header{padding-bottom:7px}
+.kicker{font-weight:900;color:var(--purple);letter-spacing:.04em;font-size:.82rem}
+h1{color:var(--purple);font-size:clamp(1.7rem,4vw,2.65rem);margin:.3rem 0}.lead{color:var(--muted);line-height:1.5}
+.rule{background:var(--purple);color:white;padding:18px;border-radius:10px;font-weight:900;letter-spacing:.03em;margin:14px 0}
+.panel{background:white;border:1px solid #eee9f1;border-radius:13px;padding:16px;margin:12px 0;box-shadow:0 5px 20px rgba(52,35,66,.06)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end}label{display:grid;gap:5px;font-size:.76rem;font-weight:900;color:var(--muted)}
+select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:white}button{cursor:pointer;font-weight:800}
+.primary{background:var(--purple);color:white;border-color:var(--purple)}button:disabled{opacity:.45;cursor:not-allowed}
+.cards{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:130px;padding:18px 4px 34px}
+.card{width:74px;height:96px;border:2px solid #aaa5ae;border-radius:9px;background:#fff;display:grid;place-items:center;font-size:2.15rem;font-weight:900;position:relative;user-select:none}
+.card.active{background:var(--yellow);border-color:var(--yellowLine);color:#8b6500}.card.finished{background:var(--green);border-color:var(--greenLine);color:#116444}
+.card.pivot{background:var(--pink);border-color:var(--purple);color:var(--purple)}.card.bad{background:var(--bad);border-color:var(--badLine)}
+.card[draggable=true]{cursor:grab}.tag{position:absolute;bottom:-24px;font-size:.63rem;color:var(--muted);font-weight:900;white-space:nowrap}
+.msg{padding:13px 15px;border-left:5px solid var(--purple);background:#f5eef9;border-radius:8px;line-height:1.45;font-weight:700;min-height:50px}
+.msg.good{background:#edf9f2;border-color:var(--greenLine);color:#155d43}.msg.bad{background:#fff0f0;border-color:var(--badLine);color:#8d2424}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.stat{text-align:center;border:1px solid var(--line);border-radius:8px;padding:8px}.stat b{display:block;font-size:1.25rem}.stat small{color:var(--muted);font-weight:800}
+.bins{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.bin{min-height:125px;border:2px dashed var(--line);border-radius:10px;padding:10px;text-align:center}.bin h3{margin:0 0 8px;color:var(--purple);font-size:.86rem}.bin .cards{min-height:70px;padding:4px}
+.stepbox{background:#faf7fc;border-radius:10px;padding:13px;margin:8px 0}.stepbox b{color:var(--purple)}
+.cert{display:none;text-align:center;border:6px double var(--purple);padding:32px;background:white}.cert.show{display:block}
+.progress{height:9px;background:#e8e3eb;border-radius:99px;overflow:hidden}.progress div{height:100%;background:var(--purple)}
+@media(max-width:650px){.card{width:58px;height:78px;font-size:1.65rem}.bins{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media print{body>*:not(main),main>*:not(.cert){display:none!important}.cert{display:block!important}}
+
+.dropzone{border:3px dashed #bbb;border-radius:14px;min-height:76px;padding:14px;margin-top:14px;text-align:center;font-weight:800;display:flex;align-items:center;justify-content:center}
+.dropzone.over{border-color:#5a2ca0;background:#f2ebff}
+.dropzone.wrong,.card.wrong{background:#ffd9d9!important;border-color:#c62828!important;animation:shake .25s linear 2}
+.msg.bad{background:#ffe3e3;border-left:6px solid #c62828}
+.msg.good{background:#e6f4e8;border-left:6px solid #2e7d32}
+.card[draggable=true]{cursor:grab}.card[draggable=true]:active{cursor:grabbing}
+.card.dim{opacity:.42}
+.actionrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.bin{min-height:150px}
+.bin.dropzone{display:block;text-align:left}
+.bin h3{text-align:center}
+.tag{display:block;font-size:10px;line-height:1.1;margin-top:5px;font-weight:800}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.progress{height:14px;background:#eee;border-radius:999px;overflow:hidden;margin-bottom:18px}.progress>div{height:100%;background:#5a2ca0;width:0}
+.cert{display:none;max-width:820px;margin:30px auto;padding:42px;border:5px solid #5a2ca0;border-radius:18px;text-align:center;background:white}.cert.show{display:block}
+input{font:inherit;padding:10px;border:1px solid #bbb;border-radius:8px}
+</style></head><body>
+<header><div class="kicker">TECHQUITY / COMPUTER SCIENCE / TEST</div><h1>Sorting Algorithms Certificate Test</h1>
+<div class="lead">Complete 10 randomised challenges using the same drag-and-drop routines as Watch &amp; Learn and Have a Go.</div></header>
+<main>
 <div id="setup" class="panel controls"><label>Student name<input id="name" autocomplete="name"></label><label>Email address<input id="email" type="email" autocomplete="email"></label><button id="start" class="primary">Start 10-question test</button></div>
-<div id="test" style="display:none"><div class="panel"><div class="progress"><div id="bar"></div></div><h2 id="title"></h2><div id="rule" class="rule"></div><div id="stage"></div><div id="msg" class="msg"></div><div class="controls"><button id="keep">Keep / No swap</button></div><div class="stats"><div class="stat"><b id="q">1/10</b><small>Challenge</small></div><div class="stat"><b id="c">0</b><small>Comparisons / scans</small></div><div class="stat"><b id="s">0</b><small>Swaps</small></div><div class="stat"><b id="err">0</b><small>Errors</small></div></div></div></div>
-<div id="cert" class="cert"><div class="kicker">TECHQUITY / COMPUTER SCIENCE</div><h1>Certificate of Completion</h1><p>This certifies that</p><h2 id="cn"></h2><p>completed 10 sorting-algorithm challenges using Bubble Sort, Selection Sort and Quick Sort.</p><p id="result"></p><p id="date"></p><button onclick="window.print()">Print / Save Certificate</button><button id="emailCert" class="primary">Email certificate result</button><div id="emailMsg" class="lead"></div></div><div id="selftest" style="display:none"></div></main>
-<script src="sorting.js"></script><script>
+<div id="test" style="display:none"><div class="panel"><div class="progress"><div id="bar"></div></div><h2 id="title"></h2><div id="rule" class="rule"></div><div id="stage"></div><div id="msg" class="msg"></div>
+<div class="stats"><div class="stat"><b id="q">1/10</b><small>Challenge</small></div><div class="stat"><b id="c">0</b><small>Comparisons / scans</small></div><div class="stat"><b id="s">0</b><small>Swaps</small></div><div class="stat"><b id="err">0</b><small>Mistakes</small></div></div></div></div>
+<div id="cert" class="cert"><div class="kicker">TECHQUITY / COMPUTER SCIENCE</div><h1>Certificate of Completion</h1><p>This certifies that</p><h2 id="cn"></h2><p>completed 10 sorting-algorithm challenges using Bubble Sort, Selection Sort and Quick Sort.</p><p id="result"></p><p id="date"></p><button onclick="window.print()">Print / Save Certificate</button><button id="emailCert" class="primary">Email certificate result</button><div id="emailMsg" class="lead"></div></div>
+</main>
+<script>
 const EMAIL_ENDPOINT="PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
-let tests=[],qi=0,a=[],trace=null,idx=0,C=0,S=0,E=0,drag=null,qstate=null,name="",email="";
-function rnd(n){return Math.floor(Math.random()*n)}function makeCards(){let n=3+rnd(3),x=Array.from({length:n},()=>1+rnd(9));if(x.every((v,i)=>i===0||x[i-1]<=v))x.reverse();return x}
+const $=id=>document.getElementById(id);
+const midIndex=n=>Math.floor((n-1)/2);
+const pivotIndexFor=(arr,rule)=>rule==="first"?0:rule==="last"?arr.length-1:midIndex(arr.length);
+let tests=[],qi=0,a=[],E=0,C=0,S=0,drag=null,name="",email="";
+let bPass=1,bI=0,bEnd=0,selPos=0,selJ=1,selMin=0,selPhase="start",qstate=null,advanceTimer=null;
+
+function rnd(n){return Math.floor(Math.random()*n)}
+function makeCards(){let n=3+rnd(3),x=Array.from({length:n},()=>1+rnd(9));if(x.every((v,i)=>i===0||x[i-1]<=v))x.reverse();return x}
 function buildTests(){let base=["bubble","selection","quick","bubble","selection","quick","bubble","selection","quick","quick"];return base.sort(()=>Math.random()-.5).map(alg=>({alg,cards:makeCards(),pivot:["first","last","middle"][rnd(3)]}))}
-function swap(i,j){[a[i],a[j]]=[a[j],a[i]]}function bad(t){E++;$("err").textContent=E;$("msg").className="msg bad";$("msg").textContent="Invalid operation — "+t}
-function card(v,i,cls="",tag=""){return `<div class="card ${cls}" draggable="true" data-i="${i}">${v}<span class="tag">${tag}</span></div>`}
-function startChallenge(){let t=tests[qi];a=[...t.cards];idx=C=S=0;qstate=null;trace=t.alg==="bubble"?bubbleTrace(a):t.alg==="selection"?selectionTrace(a):null;$("q").textContent=`${qi+1}/10`;$("bar").style.width=`${qi*10}%`;$("title").textContent=`Challenge ${qi+1}: ${t.alg==="bubble"?"Bubble Sort":t.alg==="selection"?"Selection Sort":"Quick Sort"+` — ${t.pivot} pivot`}`;render()}
-function bind(){document.querySelectorAll(".card[draggable=true]").forEach(el=>{el.ondragstart=()=>drag=+el.dataset.i;el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();let j=+el.dataset.i;if(drag!==null&&drag!==j)trySwap(drag,j);drag=null}})}
-function nextChallenge(){qi++;if(qi>=10)return finish();startChallenge()}
-function render(){
- let t=tests[qi];$("c").textContent=C;$("s").textContent=S;$("err").textContent=E;
- if(t.alg==="bubble"){let e=trace.steps[idx];$("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";$("keep").style.display=e&&!e.swap?"inline-block":"none";$("stage").innerHTML=`<div class="cards">${a.map((v,i)=>card(v,i,e&&(i===e.i||i===e.j)?"active":"",e&&i===e.i?"LEFT":e&&i===e.j?"RIGHT":"")).join("")}</div>`;$("msg").className="msg";$("msg").textContent=e?"Work from left to right. Decide whether the highlighted neighbours swap or keep.":"Challenge complete.";if(!e)setTimeout(nextChallenge,300)}
- else if(t.alg==="selection"){let e=trace.steps[idx];$("rule").textContent="MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE";$("keep").style.display=e&&e.type==="scan"?"inline-block":"none";let ac=e?e.type==="scan"?[e.min,e.j]:e.type==="selswap"?[e.pos,e.min]:[]:[];$("stage").innerHTML=`<div class="cards">${a.map((v,i)=>card(v,i,ac.includes(i)?"active":"",e&&e.type==="scan"&&i===e.min?"MINIMUM":"")).join("")}</div>`;$("msg").className="msg";$("msg").textContent=e?(e.type==="scan"?"Scan the candidate against the current minimum.":"Swap the minimum into the first unsorted position."):"Challenge complete.";if(!e)setTimeout(nextChallenge,300)}
- else renderQuick(t);
- bind();
+function card(v,i,cls="",tag=""){return `<div class="card ${cls}" draggable="true" data-i="${i}">${v}${tag?`<span class="tag">${tag}</span>`:""}</div>`}
+function placedCard(v,cls=""){return `<div class="card ${cls}" draggable="false">${v}</div>`}
+function setMsg(t,type=""){$("msg").className="msg"+(type?" "+type:"");$("msg").textContent=t}
+function bad(el,t){E++;$("err").textContent=E;setMsg("Mistake — "+t,"bad");if(el){el.classList.add("wrong");setTimeout(()=>el.classList.remove("wrong"),550)}}
+function t(){return tests[qi]}
+function startChallenge(){
+ clearTimeout(advanceTimer);a=[...t().cards];C=S=0;drag=null;bPass=1;bI=0;bEnd=a.length-1;selPos=0;selJ=1;selMin=0;selPhase="start";qstate=null;
+ $("q").textContent=`${qi+1}/10`;$("bar").style.width=`${qi*10}%`;$("c").textContent=0;$("s").textContent=0;$("err").textContent=E;
+ $("title").textContent=`Challenge ${qi+1}: ${t().alg==="bubble"?"Bubble Sort":t().alg==="selection"?"Selection Sort":`Quick Sort — ${t().pivot} pivot`}`;
+ render();
 }
-function trySwap(i,j){let t=tests[qi],e=trace?.steps[idx];if(t.alg==="quick")return bad("Quick Sort uses classification groups, not pair swaps.");if(!e)return;
- if(t.alg==="bubble"){if(!e.swap)return bad("use Keep / No swap.");if(!((i===e.i&&j===e.j)||(i===e.j&&j===e.i)))return bad("swap only the highlighted adjacent pair.");swap(e.i,e.j);C++;S++;idx++;render()}
- else {if(e.type!=="selswap")return bad("finish scanning first.");if(!((i===e.pos&&j===e.min)||(i===e.min&&j===e.pos)))return bad("swap the identified minimum with the first unsorted position.");swap(e.pos,e.min);S++;idx++;while(trace.steps[idx]&&trace.steps[idx].type==="selfixed")idx++;render()}
+function bind(){
+ document.querySelectorAll(".card[draggable=true]").forEach(el=>{
+  el.ondragstart=e=>{drag=+el.dataset.i;e.dataTransfer.setData("text/plain",String(drag))};el.ondragend=()=>drag=null;
+  el.ondragover=e=>e.preventDefault();el.ondrop=e=>{e.preventDefault();if(drag!==null&&+el.dataset.i!==drag)dropCard(+el.dataset.i,el)}
+ });
+ document.querySelectorAll(".dropzone").forEach(z=>{
+  z.ondragover=e=>{e.preventDefault();z.classList.add("over")};z.ondragleave=()=>z.classList.remove("over");
+  z.ondrop=e=>{e.preventDefault();e.stopPropagation();z.classList.remove("over");dropZone(z.dataset.zone,z)}
+ });
 }
-$("keep").onclick=()=>{let t=tests[qi],e=trace?.steps[idx];if(!e)return;if(t.alg==="bubble"){if(e.swap)return bad("a swap is required.");C++;idx++;render()}else if(t.alg==="selection"){if(e.type!=="scan")return bad("a swap is required now.");C++;idx++;render()}};
-function renderQuick(t){
- $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";$("keep").style.display="none";
- if(!qstate)qstate={stack:[{arr:[...a]}],current:null,scans:0};
- while(!qstate.current&&qstate.stack.length){let g=qstate.stack.shift();if(g.arr.length<=1)continue;let pv=pivotFor(g.arr,t.pivot);qstate.current={arr:g.arr,pivot:pv,at:0,less:[],equal:[],greater:[]}}
- if(!qstate.current){$("stage").innerHTML=`<div class="cards">${[...a].sort((x,y)=>x-y).map((v,i)=>card(v,i,"finished")).join("")}</div>`;$("msg").className="msg good";$("msg").textContent="Challenge complete.";setTimeout(nextChallenge,300);return}
- let g=qstate.current,pv=g.pivot;$("stage").innerHTML=`<div class="cards">${g.arr.map((v,i)=>card(v,i,i===g.at?"active":(v===pv?"pivot":""),i===g.at?"NEXT":"")).join("")}</div><div class="bins"><div class="bin" data-bin="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>`<div class="card">${v}</div>`).join("")}</div></div><div class="bin" data-bin="equal"><h3>EQUAL to ${pv}</h3><div class="cards">${g.equal.map(v=>`<div class="card pivot">${v}</div>`).join("")}</div></div><div class="bin" data-bin="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>`<div class="card">${v}</div>`).join("")}</div></div></div>`;$("msg").className="msg";$("msg").textContent=`Pivot ${pv}. Classify the NEXT card from left to right. The pivot is not moved as a setup step.`;$("c").textContent=C;
- document.querySelectorAll(".bin").forEach(b=>b.onclick=()=>{let v=g.arr[g.at],correct=v<pv?"less":v>pv?"greater":"equal";if(b.dataset.bin!==correct)return bad(`${v} belongs in ${correct.toUpperCase()}.`);g[correct].push(v);g.at++;C++;if(g.at===g.arr.length){let kids=[];if(g.less.length>1)kids.push({arr:g.less});if(g.greater.length>1)kids.push({arr:g.greater});qstate.stack=kids.concat(qstate.stack);qstate.current=null}render()});
+function render(){$("c").textContent=C;$("s").textContent=S;$("err").textContent=E;if(t().alg==="bubble")renderBubble();else if(t().alg==="selection")renderSelection();else renderQuick();bind()}
+function challengeDone(){
+ const sorted=[...a].sort((x,y)=>x-y);
+ $("stage").innerHTML=`<div class="cards">${sorted.map((v,i)=>card(v,i,"finished")).join("")}</div>`;
+ setMsg("Challenge complete.","good");$("bar").style.width=`${(qi+1)*10}%`;
+ advanceTimer=setTimeout(()=>{qi++;if(qi>=tests.length)finish();else startChallenge()},850);
 }
-function finish(){$("test").style.display="none";$("cert").classList.add("show");$("cn").textContent=name;$("result").textContent=`10/10 challenges completed • ${E} invalid operations`;$("date").textContent=new Date().toLocaleDateString()}
-$("start").onclick=()=>{name=$("name").value.trim();email=$("email").value.trim();if(!name)return alert("Enter the student name.");if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return alert("Enter a valid email.");tests=buildTests();qi=E=0;$("setup").style.display="none";$("test").style.display="block";startChallenge()};
-$("emailCert").onclick=async()=>{if(EMAIL_ENDPOINT.startsWith("PASTE_")){$("emailMsg").textContent="Email is not connected yet. Add the Apps Script web-app URL first.";return}try{await fetch(EMAIL_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({name,email,completed:10,errors:E,date:new Date().toISOString()})});$("emailMsg").textContent="Certificate result sent to "+email+"."}catch(e){$("emailMsg").textContent="Email could not be sent. The certificate can still be printed/saved."}};
-let f=selfTests();if(location.search.includes("selftest")){$("selftest").style.display="block";$("selftest").textContent=f.length?"SELFTEST FAIL: "+f.join(", "):"SELFTEST PASS";}
+// Bubble
+function renderBubble(){
+ $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";
+ if(bEnd===0)return challengeDone();
+ let i=bI,j=i+1,need=a[i]>a[j];
+ $("stage").innerHTML=`<div class="cards">${a.map((v,k)=>card(v,k,k===i||k===j?"active":k>bEnd?"finished":"",k===i?"LEFT":k===j?"RIGHT":"")).join("")}</div><div class="dropzone" data-zone="keep">DROP A HIGHLIGHTED CARD HERE TO KEEP / NO SWAP</div>`;
+ setMsg(`Pass ${bPass}: compare ${a[i]} and ${a[j]}. Work left to right.`);
+}
+function advanceBubble(){C++;bI++;if(bI>=bEnd){bEnd--;bPass++;bI=0}render()}
+function bubbleSwap(i,j,el){if(!((i===bI&&j===bI+1)||(j===bI&&i===bI+1)))return bad(el,"swap only the highlighted neighbours.");if(a[bI]<=a[bI+1])return bad(el,"these cards are already in order; use KEEP / NO SWAP.");[a[bI],a[bI+1]]=[a[bI+1],a[bI]];S++;advanceBubble()}
+// Selection
+function renderSelection(){
+ $("rule").textContent="MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE";
+ if(selPos>=a.length-1)return challengeDone();
+ if(selPhase==="start"){
+  $("stage").innerHTML=`<div class="cards">${a.map((v,k)=>card(v,k,k===selPos?"active":k<selPos?"finished":"",k===selPos?"STARTING MINIMUM":"")).join("")}</div><div class="dropzone" data-zone="markmin">DRAG THE FIRST UNSORTED CARD HERE TO MARK IT AS THE STARTING MINIMUM</div>`;
+  setMsg(`Round ${selPos+1}: mark ${a[selPos]} as the starting minimum. This is not a scan.`);return;
+ }
+ if(selPhase==="scan"){
+  if(selJ>=a.length){selPhase="swap";return renderSelection()}
+  $("stage").innerHTML=`<div class="cards">${a.map((v,k)=>card(v,k,k===selMin||k===selJ?"active":k<selPos?"finished":"",k===selMin?"MINIMUM":k===selJ?"CANDIDATE":"")).join("")}</div><div class="actionrow"><div class="dropzone" data-zone="keepmin">KEEP CURRENT MINIMUM</div><div class="dropzone" data-zone="newmin">MAKE CANDIDATE THE NEW MINIMUM</div></div>`;
+  setMsg(`Scan ${a[selJ]} against current minimum ${a[selMin]}. Drag the CANDIDATE to the correct decision box.`);return;
+ }
+ $("stage").innerHTML=`<div class="cards">${a.map((v,k)=>card(v,k,k===selPos||k===selMin?"active":k<selPos?"finished":"",k===selPos?"FIRST UNSORTED":k===selMin?"MINIMUM":"")).join("")}</div>`;
+ if(selMin===selPos){$("stage").innerHTML+=`<div class="dropzone" data-zone="noselswap">DROP THE MINIMUM HERE — NO SWAP NEEDED</div>`;setMsg("Scan complete. The minimum is already first; no swap is needed.")}
+ else setMsg("Scan complete. Drag the MINIMUM onto the FIRST UNSORTED card.");
+}
+function nextSel(){selPos++;selMin=selPos;selJ=selPos+1;selPhase="start";render()}
+function selZone(zone,el){
+ if(selPhase==="start"){if(zone!=="markmin"||drag!==selPos)return bad(el,"mark the first unsorted card.");selPhase="scan";selJ=selPos+1;return render()}
+ if(selPhase==="scan"){if(drag!==selJ)return bad(el,"move the CANDIDATE card.");let smaller=a[selJ]<a[selMin];if(smaller&&zone!=="newmin")return bad(el,`${a[selJ]} is smaller and must become the minimum.`);if(!smaller&&zone!=="keepmin")return bad(el,"keep the current minimum.");C++;if(smaller)selMin=selJ;selJ++;return render()}
+ if(selPhase==="swap"&&zone==="noselswap"){if(drag!==selMin||selMin!==selPos)return bad(el,"no-swap is not correct here.");return nextSel()}
+ return bad(el,"that move is not valid now.");
+}
+function selSwap(i,j,el){if(selPhase!=="swap")return bad(el,"finish the scan first.");if(selMin===selPos)return bad(el,"no swap is needed.");if(!((i===selMin&&j===selPos)||(j===selMin&&i===selPos)))return bad(el,"swap only MINIMUM with FIRST UNSORTED.");[a[selPos],a[selMin]]=[a[selMin],a[selPos]];S++;nextSel()}
+// Quick
+function newQGroup(arr){if(arr.length<=1)return null;let pi=pivotIndexFor(arr,t().pivot);return {arr:[...arr],pivotIndex:pi,pivot:arr[pi],at:pi,phase:"placePivot",less:[],equal:[],greater:[]}}
+function initQ(){if(!qstate)qstate={stack:[[...a]],current:null,scans:0}}
+function nextQ(){while(!qstate.current&&qstate.stack.length){let arr=qstate.stack.shift();if(arr.length<=1)continue;qstate.current=newQGroup(arr)}}
+function nextNonPivot(g,start=0){for(let i=start;i<g.arr.length;i++)if(i!==g.pivotIndex)return i;return g.arr.length}
+function renderQuick(){
+ $("rule").textContent="CHOOSE PIVOT → PLACE PIVOT IN EQUAL → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
+ initQ();nextQ();if(!qstate.current){C=qstate.scans;return challengeDone()}
+ let g=qstate.current,pv=g.pivot;
+ $("stage").innerHTML=`<div class="cards">${g.arr.map((v,i)=>{let cls=i===g.pivotIndex?"pivot":"";if(i===g.at)cls+=(cls?" ":"")+"active";if(g.phase==="classify"&&(i<g.at||i===g.pivotIndex))cls+=(cls?" ":"")+"dim";return card(v,i,cls,i===g.pivotIndex?"PIVOT":i===g.at?"NEXT":"")}).join("")}</div>
+ <div class="bins"><div class="bin dropzone" data-zone="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>placedCard(v)).join("")}</div></div><div class="bin dropzone" data-zone="equal"><h3>EQUAL to ${pv} / PIVOT GROUP</h3><div class="cards">${g.equal.map(v=>placedCard(v,"pivot")).join("")}</div></div><div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>placedCard(v)).join("")}</div></div></div>`;
+ setMsg(g.phase==="placePivot"?`First drag the pink pivot ${pv} into EQUAL / PIVOT GROUP.`:`Pivot ${pv} is set. Work left to right: drag NEXT (${g.arr[g.at]}) into the correct group.`);
+ C=qstate.scans;$("c").textContent=C;
+}
+function finishQGroup(g){let kids=[];if(g.less.length>1)kids.push([...g.less]);if(g.greater.length>1)kids.push([...g.greater]);qstate.stack=kids.concat(qstate.stack);qstate.current=null;render()}
+function qZone(zone,el){
+ let g=qstate.current;if(!g)return;
+ if(g.phase==="placePivot"){if(drag!==g.pivotIndex)return bad(el,"place the pink PIVOT first.");if(zone!=="equal")return bad(el,"the pivot belongs in EQUAL / PIVOT GROUP.");g.equal.push(g.pivot);qstate.scans++;C=qstate.scans;g.phase="classify";g.at=nextNonPivot(g,0);if(g.at>=g.arr.length)return finishQGroup(g);return render()}
+ if(drag!==g.at)return bad(el,"classify the NEXT card from left to right.");
+ let v=g.arr[g.at],correct=v<g.pivot?"less":v>g.pivot?"greater":"equal";if(zone!==correct)return bad(el,`${v} belongs in ${correct.toUpperCase()}.`);g[correct].push(v);qstate.scans++;C=qstate.scans;g.at=nextNonPivot(g,g.at+1);if(g.at>=g.arr.length)return finishQGroup(g);render()
+}
+function dropCard(j,el){if(drag===null)return;if(t().alg==="bubble")bubbleSwap(drag,j,el);else if(t().alg==="selection")selSwap(drag,j,el);else bad(el,"Quick Sort cards go into LESS / EQUAL / GREATER.");drag=null}
+function dropZone(zone,el){
+ if(drag===null)return;
+ if(t().alg==="bubble"){if(zone!=="keep")bad(el,"use KEEP / NO SWAP.");else if(!(drag===bI||drag===bI+1))bad(el,"move a highlighted card.");else if(a[bI]>a[bI+1])bad(el,"these neighbours must be swapped.");else advanceBubble()}
+ else if(t().alg==="selection")selZone(zone,el);else qZone(zone,el);drag=null
+}
+function finish(){$("test").style.display="none";$("cert").classList.add("show");$("cn").textContent=name;$("result").textContent=`10/10 challenges completed • ${E} mistakes`;$("date").textContent=new Date().toLocaleDateString()}
+$("start").onclick=()=>{name=$("name").value.trim();email=$("email").value.trim();if(!name)return alert("Enter the student name.");if(!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(email))return alert("Enter a valid email.");tests=buildTests();qi=E=0;$("setup").style.display="none";$("test").style.display="block";startChallenge()};
+$("emailCert").onclick=async()=>{if(EMAIL_ENDPOINT.startsWith("PASTE_")){$("emailMsg").textContent="Email is not connected yet. We will connect this after the test itself is working.";return}try{await fetch(EMAIL_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({name,email,completed:10,errors:E,date:new Date().toISOString()})});$("emailMsg").textContent="Certificate result sent to "+email+"."}catch(e){$("emailMsg").textContent="Email could not be sent. The certificate can still be printed/saved."}};
 </script></body></html>
