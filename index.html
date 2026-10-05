@@ -1,6 +1,5 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sorting — Watch & Learn</title><style>
-
-:root{--purple:#651394;--purple2:#8a35b4;--ink:#262331;--muted:#6e6a75;--paper:#fbfafc;--line:#ddd7e2;--yellow:#fff1b8;--yellowLine:#c69210;--green:#dff5e9;--greenLine:#23855f;--pink:#f0ddf8;--bad:#fde2e2;--badLine:#c73535}
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorting Algorithms — Start Here</title><style>:root{--purple:#651394;--purple2:#8a35b4;--ink:#262331;--muted:#6e6a75;--paper:#fbfafc;--line:#ddd7e2;--yellow:#fff1b8;--yellowLine:#c69210;--green:#dff5e9;--greenLine:#23855f;--pink:#f0ddf8;--bad:#fde2e2;--badLine:#c73535}
 *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
 header,main{max-width:1080px;margin:auto;padding:18px}header{padding-bottom:7px}
 .kicker{font-weight:900;color:var(--purple);letter-spacing:.04em;font-size:.82rem}
@@ -25,163 +24,103 @@ select,input,button{font:inherit;border:1px solid var(--line);border-radius:8px;
 @media(max-width:650px){.card{width:58px;height:78px;font-size:1.65rem}.bins{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
 @media print{body>*:not(main),main>*:not(.cert){display:none!important}.cert{display:block!important}}
 
+.dropzone{border:3px dashed #bbb;border-radius:14px;min-height:76px;padding:14px;margin-top:14px;text-align:center;font-weight:800;display:flex;align-items:center;justify-content:center}
+.dropzone.over{border-color:#5a2ca0;background:#f2ebff}
+.dropzone.wrong,.card.wrong{background:#ffd9d9!important;border-color:#c62828!important;animation:shake .25s linear 2}
+.msg.bad{background:#ffe3e3;border-left:6px solid #c62828}
+.msg.good{background:#e6f4e8;border-left:6px solid #2e7d32}
+.card[draggable=true]{cursor:grab}.card[draggable=true]:active{cursor:grabbing}
+.card.dim{opacity:.42}
+.actionrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.bin{min-height:150px}
+.bin.dropzone{display:block;text-align:left}
+.bin h3{text-align:center}
+.tag{display:block;font-size:10px;line-height:1.1;margin-top:5px;font-weight:800}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.site-nav{display:flex;gap:10px;flex-wrap:wrap;max-width:1100px;margin:14px auto 0;padding:0 18px}
+.site-nav a{display:inline-block;padding:9px 14px;border-radius:999px;background:#fff;color:#4f2385;text-decoration:none;font-weight:800;border:2px solid #d8c8ec}
+.site-nav a:hover{background:#f1e9fa}
+
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0}
+.learn-card{background:white;border:2px solid #e4d9ef;border-radius:16px;padding:18px}
+.learn-card h2{margin-top:0}.mini-cards{display:flex;gap:7px;justify-content:center;align-items:center;min-height:80px}
+.mini{width:48px;height:60px;border:3px solid #333;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;background:white;transition:.35s}
+.mini.active{background:#ffe66d}.mini.pivot{background:#e6c8ff}.mini.done{background:#c8efcf}
+.demo-controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}.term-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.term{background:#f7f3fb;border-radius:12px;padding:14px}.eff{width:100%;border-collapse:collapse}.eff th,.eff td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+@media(max-width:760px){.hero-grid,.term-grid{grid-template-columns:1fr}}
 </style></head><body>
-<header><div class="kicker">TECHQUITY / COMPUTER SCIENCE / WATCH & LEARN</div><h1>Sorting with five cards</h1><div class="lead">Start unsorted: <b>3, 5, 2, 3, 1</b>. Follow exactly the same routines as the teacher card resource.</div></header><main>
-<div class="panel controls"><label>Algorithm<select id="alg"><option value="bubble">Bubble Sort</option><option value="selection">Selection Sort</option><option value="quick">Quick Sort</option></select></label><label id="pivotWrap" style="display:none">Pivot rule<select id="pivot"><option value="first">First card</option><option value="last">Last card</option><option value="middle">Middle position</option></select></label><button id="reset">Reset</button><button id="prev">← Previous</button><button id="next" class="primary">Next →</button></div>
-<div id="rule" class="rule"></div><div class="panel"><div id="stage"></div><div id="msg" class="msg"></div><div class="stats"><div class="stat"><b id="c">0</b><small>Comparisons / scans</small></div><div class="stat"><b id="s">0</b><small>Pair swaps</small></div><div class="stat"><b id="p">0</b><small>Pass / round / partition</small></div><div class="stat"><b id="st">Ready</b><small>Status</small></div></div></div>
-<div id="selftest" style="display:none"></div></main><script>
-
-const START=[3,5,2,3,1];
+<header><div class="kicker">TECHQUITY / COMPUTER SCIENCE</div><h1>Sorting Algorithms — Start Here</h1><div class="lead">Why we sort, how Bubble Sort, Selection Sort and Quick Sort work, and the language you need before practising.</div></header>
+<nav class="site-nav">
+<a href="index.html">Start Here</a>
+<a href="we_learn.html">We Learn</a>
+<a href="you_learn.html">You Learn</a>
+<a href="lets_check_our_learning.html">Let's Check Our Learning</a>
+</nav>
+<main>
+<div class="panel"><h2>Why do computers sort things?</h2><p>Sorting puts data into a useful order so that people and programs can organise, compare and search it more easily. Different algorithms can produce the same sorted result while doing different amounts of work.</p></div>
+<div class="hero-grid">
+<div class="learn-card"><h2>Bubble Sort</h2><p><b>COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT</b></p><p>Repeatedly compares adjacent values. Large values gradually move towards the right.</p></div>
+<div class="learn-card"><h2>Selection Sort</h2><p><b>MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE</b></p><p>Finds the minimum in the unsorted section, then places it into the next finished position.</p></div>
+<div class="learn-card"><h2>Quick Sort</h2><p><b>CHOOSE PIVOT → PARTITION → SORT OUTER GROUPS → JOIN</b></p><p>Uses a pivot to split values into LESS, EQUAL and GREATER groups, then sorts the outer groups recursively.</p></div>
+</div>
+<div class="panel"><h2>Animated walkthrough</h2><div class="demo-controls"><button id="bubble">Bubble Sort</button><button id="selection">Selection Sort</button><button id="quick">Quick Sort</button><button id="next" class="primary">Next Step</button><button id="play">Play Animation</button><button id="stop">Stop</button></div><h2 id="demoTitle"></h2><div id="demo"></div><div id="demoMsg" class="msg"></div><p id="stepNo"></p></div>
+<div class="panel"><h2>Key terminology</h2><div class="term-grid">
+<div class="term"><b>Algorithm</b><br>A precise sequence of steps for solving a problem.</div>
+<div class="term"><b>Comparison / scan</b><br>Looking at values to decide what should happen next.</div>
+<div class="term"><b>Swap</b><br>Exchanging the positions of two cards.</div>
+<div class="term"><b>Pivot</b><br>The Quick Sort reference value used to divide cards into LESS, EQUAL and GREATER groups.</div>
+<div class="term"><b>Partition</b><br>Classifying a Quick Sort group around its pivot.</div>
+<div class="term"><b>Recursion</b><br>Applying the same sorting process again to smaller groups.</div>
+</div></div>
+<div class="panel"><h2>Efficiency — how much work?</h2><p>Efficiency describes how the amount of work grows as the list gets larger. We often write this using <b>Big O notation</b>.</p>
+<table class="eff"><tr><th>Algorithm</th><th>Typical idea</th><th>Efficiency</th><th>What to notice</th></tr>
+<tr><td>Bubble Sort</td><td>Repeated neighbour comparisons</td><td>Usually O(n²)</td><td>Simple to understand, but work grows quickly on large lists.</td></tr>
+<tr><td>Selection Sort</td><td>Scan the unsorted section for its minimum</td><td>O(n²)</td><td>Still performs many comparisons, but normally only one swap per round.</td></tr>
+<tr><td>Quick Sort</td><td>Partition around pivots</td><td>Average O(n log n); worst O(n²)</td><td>Good pivots tend to create balanced groups; poor pivots can create uneven groups.</td></tr></table>
+<p><b>For our five-card classroom example:</b> focus first on accurately counting comparisons/scans, swaps and partitions. Big O describes how the algorithm scales when the input becomes much larger.</p></div>
+<div class="panel controls"><a class="primary" href="we_learn.html" style="text-decoration:none;padding:12px 18px;border-radius:10px">Continue to We Learn →</a></div>
+</main><script>
 const $=id=>document.getElementById(id);
-function midIndex(n){return Math.floor((n-1)/2)} // left-middle for even groups, matching the guide
-function pivotFor(arr,rule){return rule==="first"?arr[0]:rule==="last"?arr[arr.length-1]:arr[midIndex(arr.length)]}
-function bubbleTrace(input){
- let a=[...input],steps=[],C=0,S=0,passes=0;
- for(let end=a.length-1;end>0;end--){
-  let changed=false; passes++;
-  for(let i=0;i<end;i++){
-   C++; let before=[...a],swap=a[i]>a[i+1];
-   if(swap){[a[i],a[i+1]]=[a[i+1],a[i]];S++;changed=true}
-   steps.push({type:"bubble",i,j:i+1,swap,before,after:[...a],C,S,pass:passes,finishedFrom:end});
-  }
-  if(!changed)break;
- }
- return {steps,result:a,C,S,passes};
+const START=[3,5,2,3,1];
+let alg="bubble",step=0,timer=null;
+const demos={
+ bubble:[
+  {a:[3,5,2,3,1],x:[0,1],m:"Compare neighbouring cards. 3 and 5 are already in order, so keep them."},
+  {a:[3,5,2,3,1],x:[1,2],m:"5 is greater than 2, so swap the neighbours."},
+  {a:[3,2,5,3,1],x:[2,3],m:"Continue moving right. Swap 5 and 3."},
+  {a:[3,2,3,5,1],x:[3,4],m:"Swap 5 and 1. The largest card has bubbled to the right."},
+  {a:[1,2,3,3,5],x:[],done:true,m:"Repeated passes eventually leave the whole list sorted."}
+ ],
+ selection:[
+  {a:[3,5,2,3,1],x:[0],m:"Mark the first unsorted card as the current minimum."},
+  {a:[3,5,2,3,1],x:[0,2],m:"Scan the remaining cards. 2 becomes the new minimum."},
+  {a:[3,5,2,3,1],x:[2,4],m:"Continue the whole scan. 1 becomes the minimum."},
+  {a:[1,5,2,3,3],x:[0],done:[0],m:"After the scan, swap the minimum into the first unsorted position."},
+  {a:[1,2,3,3,5],x:[],done:true,m:"Repeat for each remaining position until sorted."}
+ ],
+ quick:[
+  {a:[3,5,2,3,1],x:[0],pivot:0,m:"Choose a pivot. Here the first card, 3, is the reference value."},
+  {groups:[[2,1],[3,3],[5]],m:"Partition every card into LESS, EQUAL or GREATER than the pivot."},
+  {groups:[[1,2],[3,3],[5]],m:"Recursively sort the outer groups. Groups of 0 or 1 card stop."},
+  {a:[1,2,3,3,5],x:[],done:true,m:"Join LESS + EQUAL + GREATER to produce the sorted list."}
+ ]
+};
+function cards(arr,x=[],pivot=null,done=false){
+ return `<div class="mini-cards">${arr.map((v,i)=>`<div class="mini ${x.includes(i)?"active":""} ${pivot===i?"pivot":""} ${done===true||Array.isArray(done)&&done.includes(i)?"done":""}">${v}</div>`).join("")}</div>`;
 }
-function selectionTrace(input){
- let a=[...input],steps=[],C=0,S=0,rounds=0;
- for(let pos=0;pos<a.length-1;pos++){
-  rounds++; let min=pos;
-  // Explicitly show the first unsorted card being marked as the starting minimum.
-  // This is not counted as a scan/comparison.
-  steps.push({type:"selstart",pos,min,C,S,round:rounds,state:[...a]});
-  for(let j=pos+1;j<a.length;j++){
-   C++; let old=min;if(a[j]<a[min])min=j;
-   steps.push({type:"scan",pos,j,oldMin:old,min,C,S,round:rounds,state:[...a]});
-  }
-  if(min!==pos){let before=[...a];[a[pos],a[min]]=[a[min],a[pos]];S++;steps.push({type:"selswap",pos,min,before,after:[...a],C,S,round:rounds})}
-  steps.push({type:"selfixed",pos,state:[...a],C,S,round:rounds});
- }
- return {steps,result:a,C,S,rounds};
-}
-function quickTrace(input,rule){
- let scans=0,parts=0,events=[];
- function q(arr,path="whole"){
-  if(arr.length<=1)return [...arr];
-  let pivot=pivotFor(arr,rule),less=[],equal=[],greater=[];parts++;
-  events.push({type:"partitionStart",arr:[...arr],pivot,path,parts,scans});
-  arr.forEach((v,idx)=>{
-   scans++;
-   let group=v<pivot?"less":v>pivot?"greater":"equal";
-   if(group==="less")less.push(v);else if(group==="greater")greater.push(v);else equal.push(v);
-   events.push({type:"classify",arr:[...arr],pivot,value:v,index:idx,group,less:[...less],equal:[...equal],greater:[...greater],parts,scans,path});
-  });
-  let L=q(less,path+".L"),G=q(greater,path+".G");
-  let joined=[...L,...equal,...G];events.push({type:"join",pivot,path,joined:[...joined],parts,scans});
-  return joined;
- }
- let result=q([...input]);return {events,result,scans,parts};
-}
-function eq(a,b){return JSON.stringify(a)===JSON.stringify(b)}
-function selfTests(){
- let failures=[];
- let b=bubbleTrace(START);
- if(!eq(b.result,[1,2,3,3,5]))failures.push("bubble result");
- if(b.C!==10||b.S!==7||b.passes!==4)failures.push(`bubble counts ${b.C}/${b.S}/${b.passes}`);
- if(!(b.steps[0].i===0&&b.steps[0].j===1&&!b.steps[0].swap))failures.push("bubble first comparison");
- let s=selectionTrace(START);
- if(!eq(s.result,[1,2,3,3,5])||s.C!==10||s.S!==4||s.rounds!==4)failures.push("selection trace");
- let q1=quickTrace(START,"first"),ql=quickTrace(START,"last"),qm=quickTrace(START,"middle");
- if(!eq(q1.result,[1,2,3,3,5])||q1.scans!==7||q1.parts!==2)failures.push("quick first");
- if(!eq(ql.result,[1,2,3,3,5])||ql.scans!==9||ql.parts!==2)failures.push("quick last");
- if(!eq(qm.result,[1,2,3,3,5])||qm.scans!==10||qm.parts!==3)failures.push("quick middle");
- if(pivotFor(START,"middle")!==2)failures.push("middle pivot");
- return failures;
-}
-
-</script><script>
-let idx=-1,trace=null;
-function cards(arr,active=[],finished=[],pivotIndex=null){return `<div class="cards">${arr.map((v,i)=>`<div class="card ${active.includes(i)?"active":""} ${finished.includes(i)?"finished":""} ${pivotIndex===i?"pivot":""}">${v}</div>`).join("")}</div>`}
-function reset(){idx=-1;let alg=$("alg").value;$("pivotWrap").style.display=alg==="quick"?"grid":"none";trace=alg==="bubble"?bubbleTrace(START):alg==="selection"?selectionTrace(START):quickTrace(START,$("pivot").value);render()}
 function render(){
- let alg=$("alg").value,stage=$("stage");$("prev").disabled=idx<0;
-
- if(alg==="bubble"){
-   $("rule").textContent="COMPARE NEIGHBOURS → SWAP IF NEEDED → MOVE RIGHT";
-   if(idx>=trace.steps.length){
-     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
-     $("c").textContent=trace.C;$("s").textContent=trace.S;$("p").textContent=trace.passes;
-     $("msg").textContent="Bubble Sort complete: 1, 2, 3, 3, 5. All cards are now finished.";
-     $("st").textContent="Complete";
-     return;
-   }
-   let e=idx<0?null:trace.steps[idx],arr=e?e.after:START,active=e?[e.i,e.j]:[],finished=[];
-   if(e){
-     let next=trace.steps[idx+1];
-     if(!next||next.pass!==e.pass)finished=Array.from({length:START.length-e.finishedFrom},(_,k)=>e.finishedFrom+k);
-   }
-   stage.innerHTML=cards(arr,active,finished);
-   $("c").textContent=e?e.C:0;$("s").textContent=e?e.S:0;$("p").textContent=e?e.pass:0;
-   $("msg").textContent=e?`Pass ${e.pass}: compare ${e.before[e.i]} / ${e.before[e.j]} — ${e.swap?"swap":"keep"}. Then move right.`:"Start at the left: compare 3 and 5.";
-   $("st").textContent="Watching";
-
- }else if(alg==="selection"){
-   $("rule").textContent="MARK MINIMUM → SCAN REMAINING VALUES → SWAP ONCE";
-   if(idx>=trace.steps.length){
-     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
-     $("c").textContent=trace.C;$("s").textContent=trace.S;$("p").textContent=trace.rounds;
-     $("msg").textContent="Selection Sort complete: 1, 2, 3, 3, 5. All positions are now finished.";
-     $("st").textContent="Complete";
-     return;
-   }
-   let e=idx<0?null:trace.steps[idx],arr=e?(e.after||e.state):START,active=[],fin=[];
-   if(e){
-     if(e.type==="selstart") active=[e.min];
-     if(e.type==="scan") active=e.min===e.j?[e.j]:[e.min,e.j];
-     if(e.type==="selswap") active=[e.pos,e.min];
-     if(e.type==="selfixed") fin=Array.from({length:e.pos+1},(_,k)=>k);
-   }
-   stage.innerHTML=cards(arr,active,fin);
-   $("c").textContent=e?e.C:0;$("s").textContent=e?e.S:0;$("p").textContent=e?e.round:0;
-   if(!e){
-     $("msg").textContent="Round 1: mark 3 as the starting minimum. Scan every remaining card from left to right: 5, 2, 3, 1.";
-   }else if(e.type==="selstart"){
-     $("msg").textContent=`Round ${e.round}: mark ${e.state[e.min]} as the starting minimum. This is not counted as a scan.`;
-   }else if(e.type==="scan"){
-     const candidate=e.state[e.j];
-     $("msg").textContent=`Round ${e.round}: scan ${candidate}. ${e.min===e.j?candidate+" becomes the new minimum.":"It is not smaller than the current minimum. Keep scanning."}`;
-   }else if(e.type==="selswap"){
-     $("msg").textContent=`Round ${e.round}: scan complete. Swap the minimum ${e.before[e.min]} into the first unsorted position.`;
-   }else{
-     $("msg").textContent=`Round ${e.round} complete. Position ${e.pos+1} is finished.`;
-   }
-   $("st").textContent="Watching";
-
- }else{
-   $("rule").textContent="CHOOSE PIVOT → PARTITION LEFT TO RIGHT → SORT OUTER GROUPS → JOIN";
-   if(idx>=trace.events.length){
-     stage.innerHTML=cards(trace.result,[],[0,1,2,3,4]);
-     $("c").textContent=trace.scans;$("s").textContent=0;$("p").textContent=trace.parts;
-     $("msg").textContent=`Quick Sort complete: ${trace.result.join(", ")}.`;
-     $("st").textContent="Complete";
-     return;
-   }
-   let e=idx<0?null:trace.events[idx];
-   let base=e ? (e.type==="join" ? e.joined : (e.arr||START)) : START;
-   let pv=e?.pivot??pivotFor(START,$("pivot").value);
-   let pivotIndex=null;
-   if(!e){
-     pivotIndex=$("pivot").value==="first"?0:$("pivot").value==="last"?START.length-1:midIndex(START.length);
-   }else if(e.type==="partitionStart"||e.type==="classify"){
-     pivotIndex=$("pivot").value==="first"?0:$("pivot").value==="last"?e.arr.length-1:midIndex(e.arr.length);
-   }
-   let bins=e&&e.type==="classify"?`<div class="bins"><div class="bin"><h3>LESS than ${pv}</h3>${cards(e.less)}</div><div class="bin"><h3>EQUAL to ${pv}</h3>${cards(e.equal)}</div><div class="bin"><h3>GREATER than ${pv}</h3>${cards(e.greater)}</div></div>`:"";
-   stage.innerHTML=`${cards(base,e&&e.type==="classify"?[e.index]:[],[],pivotIndex)}${bins}`;
-   $("c").textContent=e?e.scans:0;$("s").textContent=0;$("p").textContent=e?e.parts:0;
-   $("msg").textContent=!e?`Choose the ${$("pivot").value} pivot (${pv}). The pivot is not moved. Scan the group from left to right and classify each card into LESS / EQUAL / GREATER.`:e.type==="partitionStart"?`New group: choose pivot ${e.pivot}. Do not move it; begin classifying from the left.`:e.type==="classify"?`Scan ${e.value}: place it in ${e.group.toUpperCase()}. Order of arrival is preserved.`:`Join sorted less + equal + sorted greater: ${e.joined.join(", ")}.`;
-   $("st").textContent="Watching";
- }
+ let d=demos[alg][step];
+ $("demoTitle").textContent=alg==="bubble"?"Bubble Sort":alg==="selection"?"Selection Sort":"Quick Sort";
+ if(d.groups){
+   $("demo").innerHTML=`<div class="bins"><div class="bin"><h3>LESS</h3>${cards(d.groups[0])}</div><div class="bin"><h3>EQUAL</h3>${cards(d.groups[1],[],null)}</div><div class="bin"><h3>GREATER</h3>${cards(d.groups[2])}</div></div>`;
+ }else $("demo").innerHTML=cards(d.a,d.x||[],d.pivot??null,d.done||false);
+ $("demoMsg").textContent=d.m;$("stepNo").textContent=`Step ${step+1} of ${demos[alg].length}`;
 }
-$("next").onclick=()=>{let n=$("alg").value==="quick"?trace.events.length:trace.steps.length;if(idx<n)idx++;render()};$("prev").onclick=()=>{if(idx>=0)idx--;render()};$("reset").onclick=reset;$("alg").onchange=reset;$("pivot").onchange=reset;reset();
-let f=selfTests();if(location.search.includes("selftest")){$("selftest").style.display="block";$("selftest").textContent=f.length?"SELFTEST FAIL: "+f.join(", "):"SELFTEST PASS";}
+function choose(a){clearInterval(timer);alg=a;step=0;render()}
+$("bubble").onclick=()=>choose("bubble");$("selection").onclick=()=>choose("selection");$("quick").onclick=()=>choose("quick");
+$("next").onclick=()=>{step=(step+1)%demos[alg].length;render()};
+$("play").onclick=()=>{clearInterval(timer);timer=setInterval(()=>{step=(step+1)%demos[alg].length;render()},1800)};
+$("stop").onclick=()=>clearInterval(timer);render();
 </script></body></html>
