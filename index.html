@@ -166,9 +166,15 @@ function render(){
      $("st").textContent="Complete";
      return;
    }
-   let e=idx<0?null:trace.events[idx],base=e?.arr||START,pv=e?.pivot??pivotFor(START,$("pivot").value);
-   let pivotIndex=e?.arr ? ($("pivot").value==="first"?0:$("pivot").value==="last"?e.arr.length-1:midIndex(e.arr.length))
-                         : ($("pivot").value==="first"?0:$("pivot").value==="last"?START.length-1:midIndex(START.length));
+   let e=idx<0?null:trace.events[idx];
+   let base=e ? (e.type==="join" ? e.joined : (e.arr||START)) : START;
+   let pv=e?.pivot??pivotFor(START,$("pivot").value);
+   let pivotIndex=null;
+   if(!e){
+     pivotIndex=$("pivot").value==="first"?0:$("pivot").value==="last"?START.length-1:midIndex(START.length);
+   }else if(e.type==="partitionStart"||e.type==="classify"){
+     pivotIndex=$("pivot").value==="first"?0:$("pivot").value==="last"?e.arr.length-1:midIndex(e.arr.length);
+   }
    let bins=e&&e.type==="classify"?`<div class="bins"><div class="bin"><h3>LESS than ${pv}</h3>${cards(e.less)}</div><div class="bin"><h3>EQUAL to ${pv}</h3>${cards(e.equal)}</div><div class="bin"><h3>GREATER than ${pv}</h3>${cards(e.greater)}</div></div>`:"";
    stage.innerHTML=`${cards(base,e&&e.type==="classify"?[e.index]:[],[],pivotIndex)}${bins}`;
    $("c").textContent=e?e.scans:0;$("s").textContent=0;$("p").textContent=e?e.parts:0;
