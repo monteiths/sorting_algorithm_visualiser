@@ -82,6 +82,9 @@ let q=null;
 function card(v,i,cls="",tag=""){
  return `<div class="card ${cls}" draggable="true" data-i="${i}">${v}${tag?`<span class="tag">${tag}</span>`:""}</div>`;
 }
+function placedCard(v,cls=""){
+ return `<div class="card ${cls}" draggable="false">${v}</div>`;
+}
 function setMsg(t,type=""){
  $("msg").className="msg"+(type?" "+type:""); $("msg").textContent=t;
 }
@@ -113,7 +116,7 @@ function bind(){
  document.querySelectorAll(".dropzone").forEach(z=>{
    z.ondragover=e=>{e.preventDefault();z.classList.add("over")};
    z.ondragleave=()=>z.classList.remove("over");
-   z.ondrop=e=>{e.preventDefault();z.classList.remove("over");dropOnZone(z.dataset.zone,z)};
+   z.ondrop=e=>{e.preventDefault();e.stopPropagation();z.classList.remove("over");dropOnZone(z.dataset.zone,z)};
  });
 }
 function render(){
@@ -234,11 +237,11 @@ function renderQuick(){
  }).join("");
  $("stage").innerHTML=`<div class="cards">${main}</div>
  <div class="bins">
-  <div class="bin dropzone" data-zone="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map((v,i)=>card(v,i,"")).join("")}</div></div>
-  <div class="bin dropzone" data-zone="equal"><h3>EQUAL to ${pv}</h3><div class="cards">${g.equal.map((v,i)=>card(v,i,"")).join("")}</div></div>
-  <div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map((v,i)=>card(v,i,"")).join("")}</div></div>
+  <div class="bin dropzone" data-zone="less"><h3>LESS than ${pv}</h3><div class="cards">${g.less.map(v=>placedCard(v)).join("")}</div></div>
+  <div class="bin dropzone" data-zone="equal"><h3>EQUAL to ${pv} / PIVOT GROUP</h3><div class="cards">${g.equal.map(v=>placedCard(v,"pivot")).join("")}</div></div>
+  <div class="bin dropzone" data-zone="greater"><h3>GREATER than ${pv}</h3><div class="cards">${g.greater.map(v=>placedCard(v)).join("")}</div></div>
  </div>`;
- setMsg(`Pivot ${pv}. It stays where it is as the reference. Work left to right: drag NEXT (${g.arr[g.at]}) into LESS, EQUAL or GREATER.`);
+ setMsg(`Pivot ${pv}. It stays where it is as the reference. Work left to right: drag NEXT (${g.arr[g.at]}) into LESS, EQUAL / PIVOT GROUP or GREATER.`);
  C=q.scans;$("c").textContent=C;$("s").textContent=0;
 }
 function quickZone(zone,el){
